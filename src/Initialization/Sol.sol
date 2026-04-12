@@ -72,19 +72,19 @@ contract WalletRegistry {
 }
 
 // BUG
-// initOrResetWallet has no access control and no check whether the wallet is already initialized. Any caller can 
+// initOrResetWallet has no access control and no check whether the wallet is already initialized. Any caller can
 // overwrite any user's wallet data, including the guardian address and daily spending limit, and reset spentToday to 0.
 
 // IMPACT
-// An attacker calls initOrResetWallet for a victim's address, replacing the guardian with an attacker-controlled 
-// address and setting dailyLimit to type(uint256).max. The victim's wallet is now controlled by the attacker's 
+// An attacker calls initOrResetWallet for a victim's address, replacing the guardian with an attacker-controlled
+// address and setting dailyLimit to type(uint256).max. The victim's wallet is now controlled by the attacker's
 // guardian with unlimited spending.
 
 // INVARIANT
-// A wallet's configuration (owner, guardian, daily limit) must only be set during initial creation and never overwritten 
+// A wallet's configuration (owner, guardian, daily limit) must only be set during initial creation and never overwritten
 // without proper authorization.
 
 // WHAT BREAKS
-// initOrResetWallet unconditionally overwrites all wallet fields including the guardian and daily limit without checking 
-// if the wallet already exists or if the caller is authorized. An attacker can reinitialize any user's wallet, replacing 
+// initOrResetWallet unconditionally overwrites all wallet fields including the guardian and daily limit without checking
+// if the wallet already exists or if the caller is authorized. An attacker can reinitialize any user's wallet, replacing
 // the guardian with their own address and setting an unlimited daily limit, then exploiting the guardian role to drain the wallet.
