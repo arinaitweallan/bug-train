@@ -40,7 +40,7 @@ contract ClaimDistributor {
     function recoverUnclaimed() external {
         require(msg.sender == admin, "Not admin");
         require(block.timestamp > claimDeadline, "Window open");
-        
+
         uint256 remaining = rewardToken.balanceOf(address(this));
         rewardToken.safeTransfer(admin, remaining);
     }
@@ -66,8 +66,8 @@ contract ClaimDistributor {
 // The claim window duration must correctly reflect the intended number of days in seconds.
 
 // WHAT BREAKS
-// The constructor adds the day count directly to block.timestamp without multiplying by 86400 (1 days). 
-// A 30-day claim window becomes 30 seconds. Users cannot claim their rewards in time, and the admin recovers all 
+// The constructor adds the day count directly to block.timestamp without multiplying by 86400 (1 days).
+// A 30-day claim window becomes 30 seconds. Users cannot claim their rewards in time, and the admin recovers all
 // unclaimed tokens after the accidental 30-second window expires.
 
 // EXPLOIT PATH
