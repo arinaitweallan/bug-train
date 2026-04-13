@@ -7,12 +7,14 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /// @title UpgradeableStakingPool
 contract UpgradeableStakingPool {
     using SafeERC20 for IERC20;
+
     address public owner;
     IERC20 public stakingToken;
     IERC20 public rewardToken;
     uint256 public rewardRate;
     uint256 public totalStaked;
     bool private initialized;
+
     mapping(address => uint256) public staked;
     mapping(address => uint256) public rewardDebt;
 
@@ -22,6 +24,7 @@ contract UpgradeableStakingPool {
     /// @param _rewardRate Reward rate value
     function initialize(address _stakingToken, address _rewardToken, uint256 _rewardRate) external {
         require(!initialized, "Already initialized");
+        
         owner = msg.sender;
         stakingToken = IERC20(_stakingToken);
         rewardToken = IERC20(_rewardToken);
@@ -32,6 +35,7 @@ contract UpgradeableStakingPool {
     /// @notice Stake tokens to earn rewards
     function stake(uint256 amount) external {
         require(initialized, "Not initialized");
+
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         staked[msg.sender] += amount;
         totalStaked += amount;
@@ -40,6 +44,7 @@ contract UpgradeableStakingPool {
     /// @notice Unstake and reclaim tokens
     function unstake(uint256 amount) external {
         require(staked[msg.sender] >= amount, "Insufficient stake");
+
         staked[msg.sender] -= amount;
         totalStaked -= amount;
         stakingToken.safeTransfer(msg.sender, amount);
@@ -48,6 +53,7 @@ contract UpgradeableStakingPool {
     /// @notice Configure a contract parameter
     function setRewardRate(uint256 _rate) external {
         require(msg.sender == owner, "Not owner");
+
         rewardRate = _rate;
     }
 
