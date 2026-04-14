@@ -62,3 +62,17 @@ contract UpgradeableStakingPool {
         return staked[user];
     }
 }
+
+// INVARIANT
+// Only the intended deployer should be able to initialize the proxy and claim ownership of the staking pool.
+
+// WHAT BREAKS
+// Anyone can call initialize before the deployer, setting themselves as owner and configuring malicious token 
+// addresses or parameters. The legitimate deployer's initialization then reverts with 'Already initialized'.
+
+// EXPLOIT PATH
+// 1. Observe mempool: deployer deploys proxy and submits initialize(stakingToken, rewardToken, rate) in a separate transaction
+// 2. Front-run: attacker calls initialize(attackerToken, attackerReward, 0) with higher gas price
+// 3. Victim tx reverts: deployer's initialize fails with 'Already initialized'
+// 4. Back-run: not needed — attacker is now the permanent owner with full control over setRewardRate
+// 5. Attacker can set malicious parameters, or if users interact with the pool, their stakes go to attacker-controlled token addresses.
