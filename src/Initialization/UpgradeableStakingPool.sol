@@ -24,7 +24,7 @@ contract UpgradeableStakingPool {
     /// @param _rewardRate Reward rate value
     function initialize(address _stakingToken, address _rewardToken, uint256 _rewardRate) external {
         require(!initialized, "Already initialized");
-        
+
         owner = msg.sender;
         stakingToken = IERC20(_stakingToken);
         rewardToken = IERC20(_rewardToken);
@@ -67,7 +67,7 @@ contract UpgradeableStakingPool {
 // Only the intended deployer should be able to initialize the proxy and claim ownership of the staking pool.
 
 // WHAT BREAKS
-// Anyone can call initialize before the deployer, setting themselves as owner and configuring malicious token 
+// Anyone can call initialize before the deployer, setting themselves as owner and configuring malicious token
 // addresses or parameters. The legitimate deployer's initialization then reverts with 'Already initialized'.
 
 // EXPLOIT PATH
