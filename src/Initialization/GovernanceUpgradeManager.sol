@@ -67,13 +67,13 @@ contract GovernanceUpgradeManager is Initializable {
 }
 
 // INVARIANT
-// Reinitializer versions must increment sequentially (1, 2, 3...) with no gaps, ensuring every migration step executes 
+// Reinitializer versions must increment sequentially (1, 2, 3...) with no gaps, ensuring every migration step executes
 // exactly once.
 
 // WHAT BREAKS
-// The contract jumps from reinitializer version 1 to version 3, skipping version 2. If a V2 migration was planned 
-// (e.g., migrating from an old quorum format), it never runs. Additionally, the skipped version creates a gap that 
-// could be exploited if a future implementation adds reinitializer(2) logic, which would unexpectedly be callable 
+// The contract jumps from reinitializer version 1 to version 3, skipping version 2. If a V2 migration was planned
+// (e.g., migrating from an old quorum format), it never runs. Additionally, the skipped version creates a gap that
+// could be exploited if a future implementation adds reinitializer(2) logic, which would unexpectedly be callable
 // since version 2 was never consumed.
 
 // EXPLOIT PATH
