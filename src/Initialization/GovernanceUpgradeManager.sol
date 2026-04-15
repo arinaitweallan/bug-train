@@ -33,7 +33,7 @@ contract GovernanceUpgradeManager is Initializable {
         quorumThreshold = _quorum;
         emergencyMode = _emergency;
     }
-    
+
     modifier onlyAdmin() {
         require(msg.sender == admin, "Not admin");
         _;
@@ -65,3 +65,21 @@ contract GovernanceUpgradeManager is Initializable {
         return (votingDelay, votingPeriod, quorumThreshold);
     }
 }
+
+// INVARIANT
+// Reinitializer versions must increment sequentially (1, 2, 3...) with no gaps, ensuring every migration step executes 
+// exactly once.
+
+// WHAT BREAKS
+// The contract jumps from reinitializer version 1 to version 3, skipping version 2. If a V2 migration was planned 
+// (e.g., migrating from an old quorum format), it never runs. Additionally, the skipped version creates a gap that 
+// could be exploited if a future implementation adds reinitializer(2) logic, which would unexpectedly be callable 
+// since version 2 was never consumed.
+
+// EXPLOIT PATH
+// 1. GovernanceUpgradeManager deployed with initialize(admin, 1 days, 3 days). Version set to 1
+// 2. Upgrade to V3 implementation. initializeV3(proposer, 5000, false) called. Version set to 3
+// 3. V2 migration (intended to convert quorumThreshold from absolute to percentage) never ran
+// 4. quorumThreshold was set to 4000 (absolute votes) in V1, then overwritten to 5000 in V3, but the system now interprets it as a percentage (50%)
+// 5. Governance proposals require 50% quorum instead of the intended 5000 absolute votes
+// 6. A small holder group passes malicious proposals that should not have met quorum.
