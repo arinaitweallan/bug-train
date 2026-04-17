@@ -64,20 +64,20 @@
 // }
 
 // BUG
-// The initialize function calls __Pausable_init() but omits __ReentrancyGuard_init(). The ReentrancyGuardUpgradeable _status 
+// The initialize function calls __Pausable_init() but omits __ReentrancyGuard_init(). The ReentrancyGuardUpgradeable _status
 // variable is never initialized from its default value of 0.
 
 // IMPACT
-// ReentrancyGuardUpgradeable expects _status to be initialized to _NOT_ENTERED (1). With _status=0, the nonReentrant modifier 
+// ReentrancyGuardUpgradeable expects _status to be initialized to _NOT_ENTERED (1). With _status=0, the nonReentrant modifier
 // may not function correctly, potentially allowing reentrancy attacks on stake and unstake.
 
 // INVARIANT
-// All inherited initializable contracts must have their __init() functions called during initialization to activate their 
+// All inherited initializable contracts must have their __init() functions called during initialization to activate their
 // protections.
 
 // WHAT BREAKS
-// The ReentrancyGuard _status variable remains at its default value 0 instead of being set to _NOT_ENTERED (1). Depending on 
-// the OpenZeppelin version, this can either cause all nonReentrant functions to revert (bricking the contract) or render the 
+// The ReentrancyGuard _status variable remains at its default value 0 instead of being set to _NOT_ENTERED (1). Depending on
+// the OpenZeppelin version, this can either cause all nonReentrant functions to revert (bricking the contract) or render the
 // reentrancy guard ineffective, exposing stake and unstake to reentrancy.
 
 // EXPLOIT PATH
@@ -89,5 +89,5 @@
 // 6. Alternatively, if the guard is bypassed, a malicious token's transferFrom callback can reenter unstake.
 
 // WHY MISSED
-// Auditors verify that inherited contracts appear in the inheritance list and that the initializer modifier is present, but do 
-// not systematically diff the inheritance chain against the __init() calls to catch missing parent 
+// Auditors verify that inherited contracts appear in the inheritance list and that the initializer modifier is present, but do
+// not systematically diff the inheritance chain against the __init() calls to catch missing parent
