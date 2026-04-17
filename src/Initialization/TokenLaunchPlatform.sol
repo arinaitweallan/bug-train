@@ -90,20 +90,20 @@ contract TokenLaunchPlatform {
 }
 
 // BUG
-// The launch() function has no access control. Anyone can call it to transition the platform to the launched state before 
+// The launch() function has no access control. Anyone can call it to transition the platform to the launched state before
 // the deployer has finished setup (e.g., before funding the contract with launch tokens).
 
 // IMPACT
-// If launched before the contract holds launch tokens, users contribute payment tokens but claim() reverts because there are 
-// no launch tokens to distribute. Users' payment tokens are locked, and the deployer gets the raised funds without delivering 
+// If launched before the contract holds launch tokens, users contribute payment tokens but claim() reverts because there are
+// no launch tokens to distribute. Users' payment tokens are locked, and the deployer gets the raised funds without delivering
 // tokens.
 
 // INVARIANT
 // Each step in the bootstrap sequence must be callable only by the authorized deployer and only when prerequisites are met.
 
 // WHAT BREAKS
-// The launch() function lacks access control. An attacker calls launch() immediately after the deployer calls configure(), 
-// before launch tokens are transferred to the contract. Users contribute payment tokens, but claim() reverts because the 
+// The launch() function lacks access control. An attacker calls launch() immediately after the deployer calls configure(),
+// before launch tokens are transferred to the contract. Users contribute payment tokens, but claim() reverts because the
 // contract has no launch tokens. Payment tokens are stranded.
 
 // EXPLOIT PATH
@@ -115,6 +115,6 @@ contract TokenLaunchPlatform {
 // 6. 500,000 USDC is stuck. Deployer can call withdrawRaised() to take it, but no tokens are distributed.
 
 // WHY MISSED
-// The configure function has proper access control, creating the impression that the bootstrap flow is protected. Auditors 
-// verify the deployer-restricted functions and overlook that launch() is a critical state transition without any caller 
+// The configure function has proper access control, creating the impression that the bootstrap flow is protected. Auditors
+// verify the deployer-restricted functions and overlook that launch() is a critical state transition without any caller
 // restriction.
