@@ -74,8 +74,8 @@ contract StakingPoolRewards {
 // The initialize function must execute exactly once and only by the authorized deployer.
 
 // WHAT BREAKS
-// An attacker calls initialize() to replace the admin with their own address. They gain full admin control over the staking 
-// pool, can change the reward configuration, and existing stakers cannot recover because the staking token address may also 
+// An attacker calls initialize() to replace the admin with their own address. They gain full admin control over the staking
+// pool, can change the reward configuration, and existing stakers cannot recover because the staking token address may also
 // be changed.
 
 // EXPLOIT PATH
@@ -87,5 +87,5 @@ contract StakingPoolRewards {
 // 6. Attacker has full admin control and 200 WETH is effectively locked.
 
 // WHY MISSED
-// Auditors see the initialize function and may assume it is called once during deployment without verifying the mechanical 
+// Auditors see the initialize function and may assume it is called once during deployment without verifying the mechanical
 // re-entrancy guard. The absence of OpenZeppelin's Initializable base contract is the root oversight.
