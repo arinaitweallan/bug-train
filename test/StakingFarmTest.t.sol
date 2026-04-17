@@ -6,7 +6,7 @@ import {StakingFarm} from "src/Initialization/StakingFarm.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Token} from "test/mocks/Token.sol";
 import {console2} from "forge-std/console2.sol";
- 
+
 contract StakingFarmTest is Base {
     StakingFarm staking;
     Token stakingToken;
