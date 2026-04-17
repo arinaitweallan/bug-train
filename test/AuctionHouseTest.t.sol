@@ -27,7 +27,7 @@ contract AuctionHouseTest is Base {
     function testExploitPath() external {
         vm.prank(attacker);
         token.approve(address(auction), type(uint128).max);
-        
+
         vm.prank(attacker);
         auction.bid(100e18);
 
