@@ -16,7 +16,7 @@ contract VaultShareManager {
 
     mapping(address => uint256) public shares;
     bool private _initialized;
-    
+
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
         _;
@@ -36,6 +36,7 @@ contract VaultShareManager {
     /// @notice Deposit tokens into the contract
     function deposit(uint256 amount) external {
         require(totalShares + amount <= depositCap, "Cap exceeded");
+
         asset.safeTransferFrom(msg.sender, address(this), amount);
         shares[msg.sender] += amount;
         totalShares += amount;
@@ -68,18 +69,18 @@ contract VaultShareManager {
 }
 
 // BUG
-// The initialize function sets _initialized, asset, and depositCap but never sets the owner variable. 
+// The initialize function sets _initialized, asset, and depositCap but never sets the owner variable.
 // Owner remains address(0).
 
 // IMPACT
-// setDepositCap and emergencyWithdraw require onlyOwner but owner is address(0). No one can ever call these 
+// setDepositCap and emergencyWithdraw require onlyOwner but owner is address(0). No one can ever call these
 // functions, permanently locking emergency withdrawal capability and deposit cap management.
 
 // INVARIANT
 // The deployer must be set as owner during initialization so that admin functions are accessible.
 
 // WHAT BREAKS
-// Owner remains address(0) after initialization. No one can call setDepositCap to adjust limits or emergencyWithdraw 
+// Owner remains address(0) after initialization. No one can call setDepositCap to adjust limits or emergencyWithdraw
 // to rescue stuck tokens. If a vulnerability is discovered, funds cannot be emergency-rescued because the admin function
 //  is permanently bricked.
 
@@ -92,5 +93,5 @@ contract VaultShareManager {
 // 6. 800,000 USDC is permanently inaccessible to admin functions.
 
 // WHY MISSED
-// The onlyOwner modifier and owner state variable create the appearance of a complete access control setup. Auditors check 
+// The onlyOwner modifier and owner state variable create the appearance of a complete access control setup. Auditors check
 // that protected functions use onlyOwner but do not verify that owner is actually assigned during initialization.
