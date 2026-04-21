@@ -14,7 +14,7 @@ contract GovernanceVault is Initializable {
     IERC20 public govToken;
 
     uint256 public proposalThreshold;
-    
+
     mapping(uint256 => bool) public executedProposals;
     uint256 public proposalCount;
 
@@ -29,6 +29,7 @@ contract GovernanceVault is Initializable {
         govToken = IERC20(_token);
         proposalThreshold = _threshold;
     }
+
     modifier onlyGovernor() {
         require(msg.sender == governor, "Not governor");
         _;
@@ -40,6 +41,8 @@ contract GovernanceVault is Initializable {
     /// @param data Encoded call data
     function executeProposal(uint256 proposalId, address target, bytes calldata data) external onlyGovernor {
         require(!executedProposals[proposalId], "Already executed");
+
+        // we do not check the proposal threshold? is it right?
         executedProposals[proposalId] = true;
         proposalCount++;
         (bool success,) = target.call(data);
@@ -75,3 +78,32 @@ contract GovernanceVault is Initializable {
         return IERC20(token).balanceOf(address(this));
     }
 }
+
+// BUG
+// GovernanceVault inherits Initializable but has no constructor calling _disableInitializers(). The implementation contract 
+// behind the proxy can be initialized directly by anyone.
+
+
+// IMPACT
+// An attacker initializes the implementation directly, sets themselves as governor, and can call `executeProposal` with arbitrary 
+// calldata to execute arbitrary external calls from the implementation's context.
+
+// INVARIANT
+// The implementation contract behind a proxy must never be initializable independently.
+
+// WHAT BREAKS
+// An attacker calls initialize() directly on the implementation contract (not via proxy), setting themselves as governor. They 
+// can then call executeProposal with arbitrary target and calldata, executing any external call from the implementation's 
+// address context.
+
+// EXPLOIT PATH
+// 1. GovernanceVault implementation is deployed at 0xImpl. Proxy at 0xProxy delegates to 0xImpl
+// 2. Proxy is initialized via initialize(govMultisig, treasury, govToken, 100e18)
+// 3. Attacker calls 0xImpl.initialize(attackerAddr, attackerAddr, govToken, 0) directly on the implementation
+// 4. Attacker is now governor on the implementation's storage
+// 5. Attacker calls 0xImpl.executeProposal(1, targetContract, maliciousCalldata)
+// 6. Arbitrary code execution from 0xImpl's context.
+
+// WHY MISSED
+// Auditors verify the proxy's initialization is correct but forget that the implementation contract itself has separate storage.
+// The proxy's initializer modifier protects the proxy's storage but not the implementation's own storage.
