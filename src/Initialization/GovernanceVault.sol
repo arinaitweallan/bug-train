@@ -80,20 +80,19 @@ contract GovernanceVault is Initializable {
 }
 
 // BUG
-// GovernanceVault inherits Initializable but has no constructor calling _disableInitializers(). The implementation contract 
+// GovernanceVault inherits Initializable but has no constructor calling _disableInitializers(). The implementation contract
 // behind the proxy can be initialized directly by anyone.
 
-
 // IMPACT
-// An attacker initializes the implementation directly, sets themselves as governor, and can call `executeProposal` with arbitrary 
+// An attacker initializes the implementation directly, sets themselves as governor, and can call `executeProposal` with arbitrary
 // calldata to execute arbitrary external calls from the implementation's context.
 
 // INVARIANT
 // The implementation contract behind a proxy must never be initializable independently.
 
 // WHAT BREAKS
-// An attacker calls initialize() directly on the implementation contract (not via proxy), setting themselves as governor. They 
-// can then call executeProposal with arbitrary target and calldata, executing any external call from the implementation's 
+// An attacker calls initialize() directly on the implementation contract (not via proxy), setting themselves as governor. They
+// can then call executeProposal with arbitrary target and calldata, executing any external call from the implementation's
 // address context.
 
 // EXPLOIT PATH
