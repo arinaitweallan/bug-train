@@ -58,7 +58,7 @@ contract BridgeTokenRegistry {
     /// @param amount Token amount
     function releaseBridgedTokens(address token, address to, uint256 amount) external onlyRelayer {
         require(lockedBalances[token] >= amount, "Insufficient locked");
-        
+
         lockedBalances[token] -= amount;
         IERC20(token).safeTransfer(to, amount);
     }
@@ -73,7 +73,7 @@ contract BridgeTokenRegistry {
 // Only the legitimate deployer can initialize the bridge registry and set the guardian and relayer roles.
 
 // WHAT BREAKS
-// An attacker front-runs the deployer's initialize transaction, becoming both guardian and relayer. They can then drain all 
+// An attacker front-runs the deployer's initialize transaction, becoming both guardian and relayer. They can then drain all
 // locked bridge tokens and register malicious remote token mappings to steal cross-chain transfers.
 
 // EXPLOIT PATH
@@ -85,5 +85,5 @@ contract BridgeTokenRegistry {
 // 6. 500,000 USDC is drained to the attacker.
 
 // WHY MISSED
-// The initialized boolean flag creates a false sense of security. Auditors see the re-initialization protection and assume 
+// The initialized boolean flag creates a false sense of security. Auditors see the re-initialization protection and assume
 // initialization is safe, overlooking that anyone can be the first caller.
