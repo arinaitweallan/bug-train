@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract CrossChainTokenFactory {
     address public bridgeToken;
     address public admin;
-    
+
     mapping(bytes32 => address) public deployedTokens;
 
     constructor(address _bridgeToken) {
@@ -35,6 +35,7 @@ contract CrossChainTokenFactory {
     {
         bytes32 salt = keccak256(abi.encodePacked(srcChainId, srcToken));
         require(deployedTokens[salt] == address(0), "Already deployed");
+
         token = Clones.cloneDeterministic(bridgeToken, salt);
         deployedTokens[salt] = token;
         BridgedToken(token).initialize(name, symbol, address(this));
@@ -47,9 +48,11 @@ contract CrossChainTokenFactory {
     /// @param amount Token amount
     function mintBridged(uint256 srcChainId, address srcToken, address to, uint256 amount) external {
         require(msg.sender == admin, "Not admin");
+
         bytes32 salt = keccak256(abi.encodePacked(srcChainId, srcToken));
         address token = deployedTokens[salt];
         require(token != address(0), "Not deployed");
+
         BridgedToken(token).mint(to, amount);
     }
 
@@ -65,8 +68,11 @@ contract CrossChainTokenFactory {
 contract BridgedToken {
     string public name;
     string public symbol;
+
     address public minter;
+
     bool public initialized;
+
     mapping(address => uint256) public balanceOf;
     uint256 public totalSupply;
 
@@ -76,6 +82,7 @@ contract BridgedToken {
     /// @param _minter Minter value
     function initialize(string calldata _name, string calldata _symbol, address _minter) external {
         require(!initialized, "Already init");
+
         initialized = true;
         name = _name;
         symbol = _symbol;
@@ -87,6 +94,7 @@ contract BridgedToken {
     /// @param amount Token amount
     function mint(address to, uint256 amount) external {
         require(msg.sender == minter, "Not minter");
+
         balanceOf[to] += amount;
         totalSupply += amount;
     }
@@ -96,6 +104,7 @@ contract BridgedToken {
     /// @param amount Token amount
     function transfer(address to, uint256 amount) external returns (bool) {
         require(balanceOf[msg.sender] >= amount, "Insufficient");
+
         balanceOf[msg.sender] -= amount;
         balanceOf[to] += amount;
         return true;
