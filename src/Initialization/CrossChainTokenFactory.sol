@@ -110,3 +110,36 @@ contract BridgedToken {
         return true;
     }
 }
+
+// BUG
+// The salt is computed from srcChainId and srcToken only, without including the factory address or deployer. The deterministic
+// address is predictable, and on chains where the factory is deployed at different addresses, an attacker on chain B can deploy
+// a malicious token at the address that chain A's factory would use.
+
+// IMPACT
+// An attacker deploys their own factory on a target chain, computes the same salt, deploys a clone at the predicted address,
+// and initializes it with themselves as minter. When the real bridge tries to mint tokens, it fails or the attacker has already
+// minted fake tokens to steal bridged funds.
+
+// INVARIANT
+// Deterministic addresses for bridged tokens must include chain-specific and deployer-specific entropy to prevent cross-chain
+// address collisions.
+
+// WHAT BREAKS
+// The salt uses only srcChainId and srcToken, making the address predictable. An attacker deploys the same factory bytecode on
+// the target chain (via CREATE2 with the same deployer), computes the same salt, deploys the clone first, and initializes it
+// with themselves as minter. When the legitimate bridge directs users to that address, the attacker can mint fake tokens or
+// block the real initialization.
+
+// EXPLOIT PATH
+// 1. CrossChainTokenFactory on Ethereum at 0xFactory. computeTokenAddress(56, BUSD) = 0xPredicted
+// 2. Attacker deploys identical factory bytecode on BSC at the same address 0xFactory (using CREATE2 from the same deployer)
+// 3. Attacker calls deployBridgedToken(56, BUSD, 'Fake BUSD', 'fBUSD') on BSC factory. Clone deployed at 0xPredicted
+// 4. BridgedToken at 0xPredicted is initialized with attacker as minter
+// 5. Attacker calls mint(attackerAddr, 10000000e18) creating 10M fake tokens at 0xPredicted
+// 6. Users on BSC trust 0xPredicted (the expected bridged BUSD address) and accept attacker's fake tokens as real bridged BUSD.
+
+// WHY MISSED
+// Auditors verify the CREATE2 deterministic deployment works correctly and that the clone is initialized atomically. They do
+// not consider that the same deterministic address can be claimed by an attacker on a different chain by replicating the
+// factory deployment.
