@@ -86,3 +86,31 @@ contract TradingPair {
         return (IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)));
     }
 }
+
+// BUG
+// createPair deploys the clone but does NOT call initialize. initializePair is a separate admin-only function. Between the 
+// two transactions, an attacker can front-run initializePair and call initialize() directly on the clone.
+
+// IMPACT
+// The attacker initializes the clone with malicious parameters: a zero swapFee (stealing fee revenue), wrong token addresses 
+// (breaking the pair), or setting factory to their own address.
+
+// INVARIANT
+// Clone creation and initialization must happen atomically in the same transaction to prevent front-running.
+
+// WHAT BREAKS
+// The factory creates clones in one transaction and initializes them in a separate admin transaction. An attacker monitors 
+// for new clone deployments and calls initialize() directly on the clone before the admin's initializePair transaction lands, 
+// setting malicious parameters like zero fees or wrong token addresses.
+
+// EXPLOIT PATH
+// 1. Admin calls createPair(WETH, USDC). Clone is deployed at deterministic address 0xPair
+// 2. Admin submits initializePair(0xPair, WETH, USDC, 30) (0.3% fee) in the next block
+// 3. Attacker sees the createPair event, calls TradingPair(0xPair).initialize(WETH, USDC, 0) with higher gas
+// 4. Attacker's initialize lands first: factory = attackerAddr, swapFee = 0
+// 5. Admin's initializePair reverts with 'Already initialized'
+// 6. The WETH/USDC pair has 0% fees permanently. All fee revenue is lost.
+
+// WHY MISSED
+// Auditors check that the clone has an initializer modifier and that initializePair has access control. They overlook that the 
+// clone's initialize() itself has no caller restriction - anyone can call it between the two factory transactions.
