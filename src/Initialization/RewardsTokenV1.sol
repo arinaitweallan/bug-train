@@ -19,7 +19,7 @@ contract RewardsTokenV1 is Initializable, ERC20Upgradeable {
         maxSupply = 100_000_000e18;
         mintCooldown = 1 days;
         // missing disable initializers in constructor
-        // 
+        //
     }
 
     /// @notice Initialize contract state
@@ -71,20 +71,20 @@ contract RewardsTokenV1 is Initializable, ERC20Upgradeable {
 }
 
 // BUG
-// treasury, maxSupply, and mintCooldown are set in the constructor. In an upgradeable proxy pattern, the constructor runs on 
+// treasury, maxSupply, and mintCooldown are set in the constructor. In an upgradeable proxy pattern, the constructor runs on
 // the implementation's storage, not the proxy's. The proxy's storage has treasury=address(0), maxSupply=0, and mintCooldown=0.
 
 // IMPACT
-// On the proxy: treasury is address(0) so no one can mint. maxSupply is 0 so the supply check always reverts. The token is 
+// On the proxy: treasury is address(0) so no one can mint. maxSupply is 0 so the supply check always reverts. The token is
 // completely non-functional when accessed through the proxy.
 
 // INVARIANT
-// All state variables in an upgradeable contract must be set in the initialize function, not the constructor, to affect the 
+// All state variables in an upgradeable contract must be set in the initialize function, not the constructor, to affect the
 // proxy's storage.
 
 // WHAT BREAKS
-// treasury, maxSupply, and mintCooldown are set in the constructor, which only writes to the implementation's storage. On the 
-// proxy, treasury is address(0), maxSupply is 0, and mintCooldown is 0. The mint function requires msg.sender == address(0) 
+// treasury, maxSupply, and mintCooldown are set in the constructor, which only writes to the implementation's storage. On the
+// proxy, treasury is address(0), maxSupply is 0, and mintCooldown is 0. The mint function requires msg.sender == address(0)
 // (impossible) and totalSupply + amount <= 0 (impossible), making the token permanently unmintable.
 
 // EXPLOIT PATH
@@ -96,5 +96,5 @@ contract RewardsTokenV1 is Initializable, ERC20Upgradeable {
 // 6. Token is deployed but completely non-functional. Cannot mint any tokens ever.
 
 // WHY MISSED
-// The constructor looks correct in isolation. Auditors who are not specifically checking for the upgradeable proxy pattern 
+// The constructor looks correct in isolation. Auditors who are not specifically checking for the upgradeable proxy pattern
 // may miss that constructor state only lives on the implementation, not the proxy.
