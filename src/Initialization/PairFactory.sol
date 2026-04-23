@@ -88,19 +88,19 @@ contract TradingPair {
 }
 
 // BUG
-// createPair deploys the clone but does NOT call initialize. initializePair is a separate admin-only function. Between the 
+// createPair deploys the clone but does NOT call initialize. initializePair is a separate admin-only function. Between the
 // two transactions, an attacker can front-run initializePair and call initialize() directly on the clone.
 
 // IMPACT
-// The attacker initializes the clone with malicious parameters: a zero swapFee (stealing fee revenue), wrong token addresses 
+// The attacker initializes the clone with malicious parameters: a zero swapFee (stealing fee revenue), wrong token addresses
 // (breaking the pair), or setting factory to their own address.
 
 // INVARIANT
 // Clone creation and initialization must happen atomically in the same transaction to prevent front-running.
 
 // WHAT BREAKS
-// The factory creates clones in one transaction and initializes them in a separate admin transaction. An attacker monitors 
-// for new clone deployments and calls initialize() directly on the clone before the admin's initializePair transaction lands, 
+// The factory creates clones in one transaction and initializes them in a separate admin transaction. An attacker monitors
+// for new clone deployments and calls initialize() directly on the clone before the admin's initializePair transaction lands,
 // setting malicious parameters like zero fees or wrong token addresses.
 
 // EXPLOIT PATH
@@ -112,5 +112,5 @@ contract TradingPair {
 // 6. The WETH/USDC pair has 0% fees permanently. All fee revenue is lost.
 
 // WHY MISSED
-// Auditors check that the clone has an initializer modifier and that initializePair has access control. They overlook that the 
+// Auditors check that the clone has an initializer modifier and that initializePair has access control. They overlook that the
 // clone's initialize() itself has no caller restriction - anyone can call it between the two factory transactions.

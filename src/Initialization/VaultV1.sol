@@ -76,20 +76,20 @@ contract VaultV2 is Initializable {
 }
 
 // BUG
-// VaultV2 inserts feeRecipient at slot 1 and feePercent at slot 3, pushing asset to slot 2 and totalDeposited to slot 4. 
-// In VaultV1, asset was slot 1, totalDeposited was slot 2, and balances mapping was slot 3. After upgrade, the V1 asset 
+// VaultV2 inserts feeRecipient at slot 1 and feePercent at slot 3, pushing asset to slot 2 and totalDeposited to slot 4.
+// In VaultV1, asset was slot 1, totalDeposited was slot 2, and balances mapping was slot 3. After upgrade, the V1 asset
 // address is read as feeRecipient, totalDeposited becomes asset, and the balances mapping is shifted.
 
 // IMPACT
-// After upgrade, asset points to the old totalDeposited value (a uint256 interpreted as an address), totalDeposited reads 
+// After upgrade, asset points to the old totalDeposited value (a uint256 interpreted as an address), totalDeposited reads
 // from the old balances mapping slot, and all user balances are corrupted. Deposits and withdrawals operate on wrong data.
 
 // INVARIANT
-// Upgradeable contract storage layouts must be append-only; new variables must be placed after all existing variables to 
+// Upgradeable contract storage layouts must be append-only; new variables must be placed after all existing variables to
 // preserve slot assignments.
 
 // WHAT BREAKS
-// VaultV2 inserts feeRecipient and feePercent before asset, shifting the storage layout. After upgrading the proxy, slot 1 
+// VaultV2 inserts feeRecipient and feePercent before asset, shifting the storage layout. After upgrading the proxy, slot 1
 // (which held the asset address) is now read as feeRecipient. slot 2 (totalDeposited) becomes asset. All user balances are
 // corrupted because the mapping's base slot shifted.
 
@@ -102,5 +102,5 @@ contract VaultV2 is Initializable {
 // 6. 500,000 USDC is permanently locked in the proxy with no functional access.
 
 // WHY MISSED
-// The __gap arrays suggest the developer was aware of storage layout concerns. Auditors see the gap and assume the layout 
+// The __gap arrays suggest the developer was aware of storage layout concerns. Auditors see the gap and assume the layout
 // is preserved. They do not diff the actual slot assignments between V1 and V2 to notice the mid-layout insertion.
