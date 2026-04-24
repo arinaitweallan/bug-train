@@ -85,8 +85,8 @@ contract LiquidityPool {
 // Only the authorized rebalancer should be able to set reserve values during rebalancing.
 
 // WHAT BREAKS
-// rebalancePostHook is protected only by a require(rebalancing) state check, not by an onlyRebalancer modifier. When the 
-// rebalancer calls startRebalance, any address can front-run or follow with rebalancePostHook, setting reserves to extreme 
+// rebalancePostHook is protected only by a require(rebalancing) state check, not by an onlyRebalancer modifier. When the
+// rebalancer calls startRebalance, any address can front-run or follow with rebalancePostHook, setting reserves to extreme
 // values. The attacker then swaps at the manipulated price to drain real tokens.
 
 // EXPLOIT PATH
@@ -99,6 +99,6 @@ contract LiquidityPool {
 // 7. Actual token balances are unchanged from the real state; only accounting (reserves) was manipulated.
 
 // WHY MISSED
-// startRebalance is correctly protected with onlyRebalancer, and rebalancePostHook has a require(rebalancing) guard that 
-// makes it look like it can only be called during authorized rebalancing. Auditors see the two-phase pattern and assume 
+// startRebalance is correctly protected with onlyRebalancer, and rebalancePostHook has a require(rebalancing) guard that
+// makes it look like it can only be called during authorized rebalancing. Auditors see the two-phase pattern and assume
 // both phases share the same access control, but only the first phase checks the caller.
