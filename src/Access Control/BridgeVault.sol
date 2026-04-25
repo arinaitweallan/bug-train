@@ -73,8 +73,8 @@ contract BridgeVault {
 // Only the authorized deployer should be able to initialize the contract and set admin/relayer roles.
 
 // WHAT BREAKS
-// The initialize function uses a simple boolean guard that only prevents re-initialization but not unauthorized first 
-// initialization. An attacker who monitors the mempool can front-run the initialization, setting themselves as admin and 
+// The initialize function uses a simple boolean guard that only prevents re-initialization but not unauthorized first
+// initialization. An attacker who monitors the mempool can front-run the initialization, setting themselves as admin and
 // relayer to steal all bridged funds.
 
 // EXPLOIT PATH
@@ -87,5 +87,5 @@ contract BridgeVault {
 // 7. Attacker calls emergencyWithdraw(USDC, 200000e6) and drains all funds.
 
 // WHY MISSED
-// The _initialized boolean flag creates an illusion of safety. Auditors see the re-initialization protection and mentally 
+// The _initialized boolean flag creates an illusion of safety. Auditors see the re-initialization protection and mentally
 // check off 'initialization handled' without considering the first-init race condition that exists before any deployer check.
