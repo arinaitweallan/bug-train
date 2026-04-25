@@ -62,20 +62,19 @@ contract ManagedVault is AccessControl {
 }
 
 // BUG
-// The constructor never calls _grantRole(DEFAULT_ADMIN_ROLE, msg.sender) or grants any roles. No address will ever have 
+// The constructor never calls _grantRole(DEFAULT_ADMIN_ROLE, msg.sender) or grants any roles. No address will ever have
 // STRATEGIST_ROLE or HARVESTER_ROLE, and no admin exists to grant them.
 
-
 // IMPACT
-// setStrategy and harvest are permanently uncallable because no address has the required roles. The strategy can never be 
+// setStrategy and harvest are permanently uncallable because no address has the required roles. The strategy can never be
 // updated and yield can never be harvested, locking surplus funds in the contract forever.
 
 // INVARIANT
 // Critical vault management functions must be callable by at least one authorized address after deployment.
 
 // WHAT BREAKS
-// The contract inherits AccessControl and defines STRATEGIST_ROLE and HARVESTER_ROLE, but the constructor never grants any 
-// roles including DEFAULT_ADMIN_ROLE. Since no admin exists, no one can call grantRole to assign the strategist or harvester. 
+// The contract inherits AccessControl and defines STRATEGIST_ROLE and HARVESTER_ROLE, but the constructor never grants any
+// roles including DEFAULT_ADMIN_ROLE. Since no admin exists, no one can call grantRole to assign the strategist or harvester.
 // Both setStrategy and harvest are permanently bricked, trapping all yield surplus in the contract.
 
 // EXPLOIT PATH
@@ -88,6 +87,6 @@ contract ManagedVault is AccessControl {
 // 7. This is a permanent denial-of-service on vault operations.
 
 // WHY MISSED
-// The contract imports and inherits AccessControl correctly, and role constants are properly defined with keccak256. 
-// The onlyRole modifiers are correctly applied. Everything looks right except the missing initialization in the constructor, 
+// The contract imports and inherits AccessControl correctly, and role constants are properly defined with keccak256.
+// The onlyRole modifiers are correctly applied. Everything looks right except the missing initialization in the constructor,
 // which is easy to overlook because AccessControl does not revert during construction when roles are not set up.
