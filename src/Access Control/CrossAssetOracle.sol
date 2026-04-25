@@ -57,11 +57,11 @@ contract CrossAssetOracle {
 }
 
 // INVARIANT
-// Privileged admin functions that wire external dependencies must either (a) validate the dependency's identity on-chain, 
+// Privileged admin functions that wire external dependencies must either (a) validate the dependency's identity on-chain,
 // or (b) be guarded by a multi-sig + timelock so the misconfiguration window is reviewable before execution.
 
 // WHAT BREAKS
-// setFeed() trusts the admin to bind feeds correctly but the contract never verifies the binding matches the token's real 
+// setFeed() trusts the admin to bind feeds correctly but the contract never verifies the binding matches the token's real
 // asset. A single typo in a governance transaction mis-prices the token permanently until another setFeed() call corrects it.
 
 // EXPLOIT PATH
@@ -73,6 +73,6 @@ contract CrossAssetOracle {
 // 6. Attacker is credited with $3,000,000 in collateral value for $1 of tokens. They borrow or withdraw protocol assets accordingly.
 
 // WHY MISSED
-// Feed assignment is an admin configuration step, not a code-level computation. Auditors may treat setFeed as a trusted 
-// admin operation and focus on the price consumption logic. Classifying the risk as 'access control' makes the review 
+// Feed assignment is an admin configuration step, not a code-level computation. Auditors may treat setFeed as a trusted
+// admin operation and focus on the price consumption logic. Classifying the risk as 'access control' makes the review
 // question explicit: is the admin key trustworthy enough to hold this much protocol value?
