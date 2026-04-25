@@ -83,22 +83,22 @@ contract LendingMarket {
 }
 
 // IMPACT
-// When the protocol is paused (e.g., during an oracle malfunction or exploit), liquidators can still liquidate positions using 
+// When the protocol is paused (e.g., during an oracle malfunction or exploit), liquidators can still liquidate positions using
 // stale or manipulated prices. Borrowers cannot deposit additional collateral to save their positions because depositCollateral
 // is paused, making them defenseless against liquidation.
 
 // BUG
-// The liquidate function is missing the whenNotPaused modifier. During an emergency pause, liquidations can still execute 
+// The liquidate function is missing the whenNotPaused modifier. During an emergency pause, liquidations can still execute
 // while deposits and borrows are frozen.
 
 // INVARIANT
-// During emergency pause, all state-changing user operations including liquidation must be halted to prevent exploitation of 
+// During emergency pause, all state-changing user operations including liquidation must be halted to prevent exploitation of
 // frozen market conditions.
 
 // WHAT BREAKS
-// The pause mechanism protects depositCollateral and borrow but not liquidate. During a pause triggered by an oracle failure 
-// or market crash, borrowers cannot deposit more collateral (paused), but liquidators can still liquidate their positions. 
-// This creates an asymmetric situation where borrowers are defenseless against liquidation during the exact conditions when 
+// The pause mechanism protects depositCollateral and borrow but not liquidate. During a pause triggered by an oracle failure
+// or market crash, borrowers cannot deposit more collateral (paused), but liquidators can still liquidate their positions.
+// This creates an asymmetric situation where borrowers are defenseless against liquidation during the exact conditions when
 // the protocol should be protecting them.
 
 // EXPLOIT PATH
@@ -110,6 +110,6 @@ contract LendingMarket {
 // 6. Borrower loses 77,000 USDC collateral during an emergency pause while unable to defend their position.
 
 // WHY MISSED
-// Auditors checking pause coverage often verify that deposits and withdrawals respect the pause flag and check the box. 
-// Liquidation functions are often intentionally left unpaused in some protocols (to maintain solvency), so the auditor 
+// Auditors checking pause coverage often verify that deposits and withdrawals respect the pause flag and check the box.
+// Liquidation functions are often intentionally left unpaused in some protocols (to maintain solvency), so the auditor
 // may assume this is by design without analyzing the asymmetric impact on borrowers.

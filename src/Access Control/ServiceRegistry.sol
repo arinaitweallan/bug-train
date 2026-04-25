@@ -59,9 +59,9 @@ contract ServiceRegistry {
 // Administrative functions must verify the direct caller (msg.sender), not the transaction originator (tx.origin).
 
 // WHAT BREAKS
-// Using tx.origin for authorization means any contract in the call chain initiated by the admin can invoke admin functions. 
-// An attacker deploys a malicious contract that the admin might interact with (e.g., a token, NFT, or DeFi protocol). 
-// When the admin calls any function on that contract, the malicious contract calls transferAdmin(attackerAddress) on 
+// Using tx.origin for authorization means any contract in the call chain initiated by the admin can invoke admin functions.
+// An attacker deploys a malicious contract that the admin might interact with (e.g., a token, NFT, or DeFi protocol).
+// When the admin calls any function on that contract, the malicious contract calls transferAdmin(attackerAddress) on
 // ServiceRegistry, and the check passes because tx.origin == admin.
 
 // EXPLOIT PATH
@@ -73,6 +73,6 @@ contract ServiceRegistry {
 // 6. Alice only intended to mint an NFT and lost admin access plus all fees.
 
 // WHY MISSED
-// tx.origin == admin is visually similar to msg.sender == admin and reads naturally as 'only the admin can call this.' 
-// The vulnerability requires understanding the multi-contract call chain threat model, which is not apparent from reading 
+// tx.origin == admin is visually similar to msg.sender == admin and reads naturally as 'only the admin can call this.'
+// The vulnerability requires understanding the multi-contract call chain threat model, which is not apparent from reading
 // a single contract in isolation.
