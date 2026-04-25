@@ -55,7 +55,7 @@ contract LendingMarket {
     function liquidate(address borrower, uint256 repayAmount) external {
         require(collateralBalances[borrower] * 75 / 100 < debtBalances[borrower], "Not liquidatable");
         require(repayAmount <= debtBalances[borrower], "Over repay");
-        
+
         debtToken.safeTransferFrom(msg.sender, address(this), repayAmount);
         debtBalances[borrower] -= repayAmount;
         totalDebt -= repayAmount;
