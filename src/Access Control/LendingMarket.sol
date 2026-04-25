@@ -81,3 +81,35 @@ contract LendingMarket {
         return (collateralBalances[user] * 75) / debtBalances[user];
     }
 }
+
+// IMPACT
+// When the protocol is paused (e.g., during an oracle malfunction or exploit), liquidators can still liquidate positions using 
+// stale or manipulated prices. Borrowers cannot deposit additional collateral to save their positions because depositCollateral
+// is paused, making them defenseless against liquidation.
+
+// BUG
+// The liquidate function is missing the whenNotPaused modifier. During an emergency pause, liquidations can still execute 
+// while deposits and borrows are frozen.
+
+// INVARIANT
+// During emergency pause, all state-changing user operations including liquidation must be halted to prevent exploitation of 
+// frozen market conditions.
+
+// WHAT BREAKS
+// The pause mechanism protects depositCollateral and borrow but not liquidate. During a pause triggered by an oracle failure 
+// or market crash, borrowers cannot deposit more collateral (paused), but liquidators can still liquidate their positions. 
+// This creates an asymmetric situation where borrowers are defenseless against liquidation during the exact conditions when 
+// the protocol should be protecting them.
+
+// EXPLOIT PATH
+// 1. Borrower has 100,000 USDC collateral, 70,000 DAI debt (health factor = 100000*75/70000 = 107%)
+// 2. Oracle malfunctions, showing inflated debt value. Admin calls pause()
+// 3. Borrower tries depositCollateral(50000e6) to increase health factor. Reverts: 'Contract paused'
+// 4. Liquidator calls liquidate(borrower, 70000e18). Function has no whenNotPaused check. Proceeds
+// 5. Liquidator repays 70,000 DAI and receives 77,000 USDC collateral (110% reward)
+// 6. Borrower loses 77,000 USDC collateral during an emergency pause while unable to defend their position.
+
+// WHY MISSED
+// Auditors checking pause coverage often verify that deposits and withdrawals respect the pause flag and check the box. 
+// Liquidation functions are often intentionally left unpaused in some protocols (to maintain solvency), so the auditor 
+// may assume this is by design without analyzing the asymmetric impact on borrowers.
