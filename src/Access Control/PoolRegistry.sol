@@ -73,22 +73,22 @@ contract PoolRegistry {
 }
 
 // BUG
-// The onlyAuthorized modifier uses || with a != comparison: msg.sender == owner || msg.sender != operator. For any address 
-// that is not the operator, the second condition (msg.sender != operator) is true, so the require passes for everyone except 
+// The onlyAuthorized modifier uses || with a != comparison: msg.sender == owner || msg.sender != operator. For any address
+// that is not the operator, the second condition (msg.sender != operator) is true, so the require passes for everyone except
 // the operator.
 
 // IMPACT
-// All three pool management functions (registerPool, removePool, updateWeight) use onlyAuthorized. Any external address 
-// except the operator can register fake pools, remove legitimate pools, or manipulate weights, disrupting reward 
+// All three pool management functions (registerPool, removePool, updateWeight) use onlyAuthorized. Any external address
+// except the operator can register fake pools, remove legitimate pools, or manipulate weights, disrupting reward
 // distribution across the entire registry.
 
 // INVARIANT
 // Only the owner or operator should be able to manage pools in the registry.
 
 // WHAT BREAKS
-// The onlyAuthorized modifier has a flipped comparison operator: msg.sender != operator instead of msg.sender == operator. 
-// The logical OR means: for any random caller, msg.sender == owner is false, but msg.sender != operator is true (they are not 
-//     the operator), so the entire expression is true. Ironically, the operator is the ONLY non-owner address that fails the 
+// The onlyAuthorized modifier has a flipped comparison operator: msg.sender != operator instead of msg.sender == operator.
+// The logical OR means: for any random caller, msg.sender == owner is false, but msg.sender != operator is true (they are not
+//     the operator), so the entire expression is true. Ironically, the operator is the ONLY non-owner address that fails the
 //     check.
 
 // EXPLOIT PATH
@@ -100,6 +100,6 @@ contract PoolRegistry {
 // 6. Only the malicious pool remains, receiving 100% of all reward distributions.
 
 // WHY MISSED
-// The modifier name 'onlyAuthorized' and its structure look correct at a glance. The != vs == typo is a single character that 
-// inverts the entire access control model. Auditors who skim modifier bodies after seeing a reasonable name and OR pattern can 
+// The modifier name 'onlyAuthorized' and its structure look correct at a glance. The != vs == typo is a single character that
+// inverts the entire access control model. Auditors who skim modifier bodies after seeing a reasonable name and OR pattern can
 // miss the inverted comparison.
