@@ -36,7 +36,7 @@ contract StakingLock {
     function stakeFor(address beneficiary, uint256 amount) external {
         require(amount > 0, "Zero amount");
         require(beneficiary != address(0), "Zero address");
-        
+
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         locks[beneficiary].amount += amount;
         locks[beneficiary].unlockTime = block.timestamp + LOCK_DURATION;
@@ -62,19 +62,19 @@ contract StakingLock {
 }
 
 // IMPACT
-// Each call to stakeFor resets the beneficiary's unlockTime to block.timestamp + LOCK_DURATION. An attacker can repeatedly 
+// Each call to stakeFor resets the beneficiary's unlockTime to block.timestamp + LOCK_DURATION. An attacker can repeatedly
 // call stakeFor with 1 wei to indefinitely extend a victim's lock, preventing them from ever unstaking.
 
 // BUG
-// stakeFor accepts any beneficiary address without verifying the beneficiary has consented. This allows forcing state changes 
+// stakeFor accepts any beneficiary address without verifying the beneficiary has consented. This allows forcing state changes
 // on arbitrary users.
 
 // INVARIANT
 // A user's lock expiry can only be extended by their own actions or with their explicit consent.
 
 // WHAT BREAKS
-// stakeFor has no consent mechanism. An attacker can call stakeFor(victim, 1) with 1 wei of tokens to reset the victim's 
-// unlockTime to 30 days in the future. Repeating this daily permanently prevents the victim from unstaking their entire 
+// stakeFor has no consent mechanism. An attacker can call stakeFor(victim, 1) with 1 wei of tokens to reset the victim's
+// unlockTime to 30 days in the future. Repeating this daily permanently prevents the victim from unstaking their entire
 // position.
 
 // EXPLOIT PATH
@@ -86,6 +86,6 @@ contract StakingLock {
 // 6. Alice's 100,000 tokens are permanently locked. Attack cost: negligible.
 
 // WHY MISSED
-// The stakeFor function appears benevolent since the attacker must spend their own tokens. Auditors focus on whether the 
-// function can steal funds and overlook that the lock-time reset side effect can be weaponized as a griefing vector with 
+// The stakeFor function appears benevolent since the attacker must spend their own tokens. Auditors focus on whether the
+// function can steal funds and overlook that the lock-time reset side effect can be weaponized as a griefing vector with
 // negligible cost.
