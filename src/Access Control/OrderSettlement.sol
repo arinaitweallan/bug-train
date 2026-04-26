@@ -58,3 +58,32 @@ contract OrderSettlement {
     }
 }
 
+// IMPACT
+// settleOrder requires nonce == nonces[user]. By incrementing a victim's nonce, the attacker causes all of the victim's 
+// pre-signed orders to fail with 'Invalid nonce'. This is a DoS on any user's pending settlements.
+
+// BUG
+// invalidateNonce is callable by anyone -- it takes an arbitrary user address and increments their nonce without any access 
+// control. This allows an attacker to increment any user's nonce, invalidating all their pending signed orders.
+
+// INVARIANT
+// Only the nonce owner can invalidate their own nonce to cancel pending orders.
+
+// WHAT BREAKS
+// invalidateNonce accepts any user address and increments their nonce without verifying msg.sender == user. An attacker can 
+// call invalidateNonce(victim) to advance the nonce, causing all of the victim's pre-signed orders (which reference the 
+// previous nonce) to become invalid.
+
+// EXPLOIT PATH
+// 1. Alice deposits 50,000 USDC and signs 5 settlement orders with nonces 0-4
+// 2. Operator begins processing: settles nonce 0 (succeeds, nonces[Alice] = 1)
+// 3. Attacker calls invalidateNonce(Alice) -- nonces[Alice] becomes 2
+// 4. Operator tries to settle Alice's order at nonce 1 -- reverts: 'Invalid nonce' (expected 2, got 1)
+// 5. Alice's orders 1, 2, 3, 4 are all now misaligned. Order 2 would need nonce=2 but was signed with nonce=2, which might work, but orders 1, 3, 4 are permanently invalid
+// 6. Attacker repeatedly calls invalidateNonce(Alice) to keep advancing the nonce beyond all signed orders
+// 7. Alice must re-sign all orders, but attacker can grief again. Permanent DoS.
+
+// WHY MISSED
+// Auditors recognize invalidateNonce as a cancel mechanism and verify it correctly increments the nonce. The missing access 
+// control check is subtle because the function name implies it is a user action, and the pattern of 'nonce invalidation for 
+// cancellation' is well-known. The oversight is that the function does not restrict WHO can cancel WHOSE nonces.
