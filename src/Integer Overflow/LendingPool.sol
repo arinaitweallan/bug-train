@@ -70,24 +70,24 @@ contract LendingPool {
 }
 
 // BUG
-// The multiplication collateralAmount * price can overflow uint256 when dealing with high-decimal tokens. If collateralAmount 
-// is 1e27 (a token with 27 decimals) and the oracle price is 1e18 (18 decimal price feed), the product is 1e45 -- safe. But 
-// for wrapped Bitcoin with 8 decimals and a price of ~30000e8 on an 8-decimal oracle, large collateral amounts 
-// (e.g., 1e18 * 30000e8 = 3e30) are fine. However, if a token uses 36 decimals and price is 1e18, the product 1e36 * 1e18 = 1e54 
+// The multiplication collateralAmount * price can overflow uint256 when dealing with high-decimal tokens. If collateralAmount
+// is 1e27 (a token with 27 decimals) and the oracle price is 1e18 (18 decimal price feed), the product is 1e45 -- safe. But
+// for wrapped Bitcoin with 8 decimals and a price of ~30000e8 on an 8-decimal oracle, large collateral amounts
+// (e.g., 1e18 * 30000e8 = 3e30) are fine. However, if a token uses 36 decimals and price is 1e18, the product 1e36 * 1e18 = 1e54
 // -- still safe. The real danger: amount = 1e30, price = 1e50 (extreme oracle return) => product = 1e80 > 2^256.
 
 // IMPACT
-// When the multiplication overflows, getCollateralValue reverts. This means isLiquidatable also reverts, preventing liquidation 
-// of undercollateralized positions. Borrowers with large positions become immune to liquidation during extreme price movements 
+// When the multiplication overflows, getCollateralValue reverts. This means isLiquidatable also reverts, preventing liquidation
+// of undercollateralized positions. Borrowers with large positions become immune to liquidation during extreme price movements
 // -- exactly when liquidation is most needed.
 
 // INVARIANT
-// Collateral and debt value calculations must never revert due to overflow, especially during extreme market conditions when 
+// Collateral and debt value calculations must never revert due to overflow, especially during extreme market conditions when
 // liquidations are critical.
 
 // WHAT BREAKS
-// The multiplication of collateral amount by oracle price has no overflow protection beyond Solidity 0.8 revert. Under extreme 
-// oracle prices (legitimate spikes or oracle manipulation), the multiplication overflows, causing getCollateralValue to revert. 
+// The multiplication of collateral amount by oracle price has no overflow protection beyond Solidity 0.8 revert. Under extreme
+// oracle prices (legitimate spikes or oracle manipulation), the multiplication overflows, causing getCollateralValue to revert.
 // This blocks all liquidation calls, leaving the protocol with bad debt.
 
 // EXPLOIT PATH
@@ -99,5 +99,5 @@ contract LendingPool {
 // 6. Price drops. Position is deeply undercollateralized but cannot be liquidated. Protocol accrues bad debt.
 // WHY MISSED
 
-// Auditors typically test oracle integration with realistic prices. The overflow only triggers with extreme values that are 
+// Auditors typically test oracle integration with realistic prices. The overflow only triggers with extreme values that are
 // rare but possible (oracle manipulation, L2 sequencer issues, or tokens with unusual decimal configurations).
