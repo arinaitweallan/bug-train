@@ -9,8 +9,19 @@ contract Helper is Base {
         result = uint256(toCast);
     }
 
+    function castIUntToInt(uint256 toCast) internal pure returns (int256 result) {
+        result = int256(toCast);
+    }
+
     function testCastIntToUint() public pure {
         uint256 _r = castIntToUint(-50e18);
+        console2.log("Result: ", _r);
+    }
+
+    function test2CastUintToInt(uint256 _toCast) public pure {
+        int256 _r = castIUntToInt(_toCast);
+
+        // assert(_toCast == _r);
         console2.log("Result: ", _r);
     }
 }
