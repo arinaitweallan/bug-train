@@ -71,21 +71,21 @@ contract FarmRewards {
 }
 
 // BUG
-// PRECISION is 1e30. When accRewardPerShare grows large (it accumulates over time), the multiplication 
-// user.amount * accRewardPerShare on line 42 can overflow uint256. For a user with 1e18 LP tokens and accRewardPerShare of 
-// 1e40, the product is 1e58 which is fine -- but after years of accumulation, accRewardPerShare can reach 1e50+, making the 
+// PRECISION is 1e30. When accRewardPerShare grows large (it accumulates over time), the multiplication
+// user.amount * accRewardPerShare on line 42 can overflow uint256. For a user with 1e18 LP tokens and accRewardPerShare of
+// 1e40, the product is 1e58 which is fine -- but after years of accumulation, accRewardPerShare can reach 1e50+, making the
 // product exceed 2^256 (~1.15e77). This causes a revert, permanently freezing user deposits.
 
 // IMPACT
-// All deposit and withdraw calls revert due to the overflow in the pending reward calculation. User funds are permanently 
+// All deposit and withdraw calls revert due to the overflow in the pending reward calculation. User funds are permanently
 // locked in the contract.
 
 // INVARIANT
 // The intermediate product user.amount * accRewardPerShare must always fit within uint256 (< 2^256) for all users.
 
 // WHAT BREAKS
-// The PRECISION constant of 1e30 is too large. Combined with a long-running pool and small totalDeposited, accRewardPerShare 
-// grows until the multiplication with user.amount overflows uint256. Since Solidity 0.8 reverts on overflow, all withdraw and 
+// The PRECISION constant of 1e30 is too large. Combined with a long-running pool and small totalDeposited, accRewardPerShare
+// grows until the multiplication with user.amount overflows uint256. Since Solidity 0.8 reverts on overflow, all withdraw and
 // deposit calls revert permanently.
 
 // EXPLOIT PATH
@@ -97,5 +97,5 @@ contract FarmRewards {
 // 6. All user funds are permanently locked.
 
 // WHY MISSED
-// MasterChef clones typically use 1e12 for PRECISION, which is safe. The 1e30 value looks like extra safety but actually 
+// MasterChef clones typically use 1e12 for PRECISION, which is safe. The 1e30 value looks like extra safety but actually
 // accelerates the overflow timeline. Auditors may not compute the long-term accumulation growth rate.
