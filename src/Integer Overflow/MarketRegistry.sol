@@ -80,19 +80,19 @@ contract MarketRegistry {
 }
 
 // BUG
-// nextMarketId is uint16 and incremented inside unchecked{}. After 65535 markets are created, the counter wraps to 0. New 
+// nextMarketId is uint16 and incremented inside unchecked{}. After 65535 markets are created, the counter wraps to 0. New
 // markets overwrite market ID 0's data in the markets mapping, destroying the original market's state including its liquidity.
 
 // IMPACT
-// When marketId wraps to 0, the Market struct at markets[0] is overwritten. The original market 0's liquidity is lost, and the 
+// When marketId wraps to 0, the Market struct at markets[0] is overwritten. The original market 0's liquidity is lost, and the
 // pairToMarket mapping for the old pair still points to ID 0 but now returns the wrong market data.
 
 // INVARIANT
 // Each market ID must be unique and must never be reused. Once a market is created at an ID, that ID must not be reassigned.
 
 // WHAT BREAKS
-// The uint16 counter wraps to 0 after 65535 markets due to the unchecked increment. New markets overwrite existing market data 
-// in the mapping. The pairToMarket check only prevents the same pair from being re-registered, but the ID collision overwrites 
+// The uint16 counter wraps to 0 after 65535 markets due to the unchecked increment. New markets overwrite existing market data
+// in the mapping. The pairToMarket check only prevents the same pair from being re-registered, but the ID collision overwrites
 // a different pair's market data.
 
 // EXPLOIT PATH
@@ -104,6 +104,6 @@ contract MarketRegistry {
 // 6. Original WETH/USDC liquidity providers can no longer interact with their market.
 
 // WHY MISSED
-// Using uint16 for market IDs looks like a reasonable gas optimization (packs with other storage). The unchecked increment 
-// is a common gas-saving pattern for loop counters. Auditors may not consider that 65535 markets is reachable over a protocol's 
+// Using uint16 for market IDs looks like a reasonable gas optimization (packs with other storage). The unchecked increment
+// is a common gas-saving pattern for loop counters. Auditors may not consider that 65535 markets is reachable over a protocol's
 // lifetime.
