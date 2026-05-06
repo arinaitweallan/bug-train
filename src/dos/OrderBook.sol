@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+// Order Cycling Grief Drains Counterparty Collateral Window
 
 /// @title OrderBook
 contract OrderBook {
@@ -61,3 +64,26 @@ contract OrderBook {
         return orders.length;
     }
 }
+
+// INVARIANT
+// Order creation must have a non-trivial cost or cooldown to prevent free cycling that degrades the order book
+
+// WHAT BREAKS
+// An attacker repeatedly calls createOrder(1e18, 1e18) then cancelOrder(id) in rapid succession. Each cycle adds a dead Order
+// entry to the orders array (cancelled entries are deactivated but never deleted). After 100,000 cycles, the orders array has
+// 100,000 entries. Any on-chain iteration over orders to find active ones (e.g., a batch fill function or view function)
+// becomes prohibitively expensive. Off-chain indexers processing the array are flooded with noise.
+
+// EXPLOIT PATH
+// 1. Attacker approves 1e18 tokens to contract
+// 2. In a loop (or via a helper contract), attacker calls createOrder(1e18, 1e18) then cancelOrder(orderId) 1,000 times per block
+// 3. Each cycle: token transferred in then out (net cost = 0 tokens, only gas)
+// 4. After 100 blocks: orders.length = 100,000. All entries have active = false
+// 5. Legitimate maker creates order at index 100,001
+// 6. Taker scanning from index 0 to find active orders must read 100,000 dead entries first. Gas for iterating: 100,000 * 2,100 (SLOAD) = 210M gas
+// 7. No on-chain function can iterate the full order book. Legitimate orders are effectively hidden in a sea of dead entries.
+
+// WHY MISSED
+// The MAX_ACTIVE_ORDERS limit looks like sufficient protection against spam. Auditors verify the per-user cap but miss that
+// cancelled orders still occupy array space permanently. The attack uses only 1 active order at any time (well within the limit)
+// but generates unlimited dead entries.
