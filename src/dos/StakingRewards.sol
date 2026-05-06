@@ -47,7 +47,7 @@ contract StakingRewards {
         require(msg.sender == owner, "Not owner");
         require(totalStaked > 0, "No stakers");
         require(rewardToken.transferFrom(msg.sender, address(this), totalReward), "Transfer failed");
-        
+
         for (uint256 i = 0; i < stakers.length; i++) {
             uint256 reward = (totalReward * stakedBalance[stakers[i]]) / totalStaked;
             if (reward > 0) {
@@ -66,7 +66,7 @@ contract StakingRewards {
 // distributeRewards must complete within a single block's gas limit regardless of the number of unique stakers
 
 // WHAT BREAKS
-// Reward distribution becomes permanently bricked once the stakers array grows large enough that iterating it exceeds the block 
+// Reward distribution becomes permanently bricked once the stakers array grows large enough that iterating it exceeds the block
 // gas limit. All pending rewards are locked in the contract.
 
 // EXPLOIT PATH
@@ -78,5 +78,5 @@ contract StakingRewards {
 // 6. distributeRewards permanently reverts, locking all reward tokens.
 
 // WHY MISSED
-// Auditors focus on access control and reentrancy in staking contracts. The stakers array growth is gradual and only becomes a 
+// Auditors focus on access control and reentrancy in staking contracts. The stakers array growth is gradual and only becomes a
 // problem at scale, making it easy to overlook during line-by-line review when the array starts empty.
