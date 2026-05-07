@@ -50,8 +50,9 @@ contract WithdrawalQueue {
     /// @notice Finalize the current state
     function finalize(uint256 count)
         external /**
-         * onlyOwner
-         */
+                  * onlyOwner
+                  */
+
     {
         uint256 end = lastFinalizedId + count;
         if (end > nextRequestId) end = nextRequestId;
