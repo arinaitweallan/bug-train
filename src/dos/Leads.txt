@@ -1,0 +1,15 @@
+1. Return Data Bomb OOGs Cross-Chain Bridge Relay
+2. Gauge Weight Underflow Blocks All Voting
+3. Front-Run Proposal ID Occupation Blocks Governance
+4. Permissionless Oracle Reset Bricks Lending Liquidations
+5. USDC Blacklist Bricks Loan Repayment
+6. Unbounded Calldata Payload Exhausts Bridge Verifier Memory
+7. Unsolicited NFT Callback Inflates Vault Token Array
+8. Order Cycling Grief Drains Counterparty Collateral Window
+9. Dust Deposit Front-Run Extends Escrow Expiry Indefinitely
+10. stETH Rounding Shortfall Reverts Vault Rebalance
+11. Hardcoded Gas Stipend Fails on Cold Storage Callback
+12. Zero-Amount Stake Creates Undeletable Position Bricking Rewards
+13. Permissionless Lock Pushes Brick Victim Redemptions
+14. Desynchronized Withdrawal Counter Locks Vault Funds
+15. Zero Total Supply Bricks Vault Deposits

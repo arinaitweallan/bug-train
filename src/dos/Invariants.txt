@@ -1,0 +1,17 @@
+1. Bridge message relay must succeed regardless of the target contract's return behavior
+2. totalWeight must never underflow: the sum of all gauge weights must always be representable as a uint256
+3. Legitimate proposers must be able to create proposals without interference from front-runners
+4. Only authorized oracle operators should be able to update price feeds used by critical lending operations
+5. Borrowers must always be able to repay their loans regardless of the lender's external status
+6. Batch verification must enforce a maximum batch size to guarantee completion within gas limits
+7. Only NFTs deposited through the official depositNFT function should be tracked in heldTokenIds
+8. Order creation must have a non-trivial cost or cooldown to prevent free cycling that degrades the order book
+9. A recipient must be able to claim their escrow within a bounded time after the original deposit
+10. Rebalance must succeed when transferring rebasing tokens that have inherent rounding behavior
+11. Relayed calls must be forwarded with sufficient gas to complete the target function's worst-case execution path
+12. Reward claiming must succeed regardless of whether the staker is an EOA or a contract without callback support
+13. distributeRewards must complete within a single block's gas limit regardless of the number of unique stakers
+14. Every staking position must represent a non-zero economic stake, and claim operations must complete within gas limits
+15. A user's redeemAll function must remain callable regardless of actions by other users
+16. Every finalized withdrawal request must be claimable by its owner
+17. The deposit function must succeed for the first depositor when the vault is empty
