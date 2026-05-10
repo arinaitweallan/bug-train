@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {Base} from "test/Base.t.sol";
-import {WithdrawalQueue} from "src/Integer Overflow/WithdrawalQueue.sol";
+import {WithdrawalQueue} from "src/IntegerOverflow/WithdrawalQueue.sol";
 
 contract WithdrawalQueueTest is Base {
     WithdrawalQueue queue;

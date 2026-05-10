@@ -43,8 +43,8 @@ contract NFTVault is IERC721Receiver {
     }
 
     /// @notice On erc721 received
-    /// @param address Address value
-    /// @param address Address value
+    // @param address Address value
+    // @param address Address value
     /// @param tokenId Token identifier
     function onERC721Received(address, address, uint256 tokenId, bytes calldata) external override returns (bytes4) {
         heldTokenIds.push(tokenId);
