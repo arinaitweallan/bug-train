@@ -91,3 +91,5 @@ contract CurveMetaVault {
 // get_virtual_price() is a view function that appears safe. The read-only reentrancy attack vector is non-obvious because the
 // vulnerability is in a VIEW function being called during a WRITE operation's callback, which traditional reentrancy guards
 // do not cover.
+
+
