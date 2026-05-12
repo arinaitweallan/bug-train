@@ -92,4 +92,3 @@ contract CurveMetaVault {
 // vulnerability is in a VIEW function being called during a WRITE operation's callback, which traditional reentrancy guards
 // do not cover.
 
-
