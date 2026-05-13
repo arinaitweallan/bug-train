@@ -25,7 +25,7 @@ contract BridgeRebalancer {
     IUniswapV3Pool public immutable pool;
     IERC20 public immutable tokenA;
     IERC20 public immutable tokenB;
-    
+
     address public admin;
     uint256 public constant REBALANCE_THRESHOLD = 110;
 
@@ -78,18 +78,18 @@ contract BridgeRebalancer {
 }
 
 // BUG
-// getPrice() reads sqrtPriceX96 directly from pool.slot0(). This is the instantaneous spot price that reflects the last trade. 
+// getPrice() reads sqrtPriceX96 directly from pool.slot0(). This is the instantaneous spot price that reflects the last trade.
 // An attacker can manipulate it within a single transaction via a flash-loan-funded swap.
 
 // IMPACT
-// The manipulated price feeds into rebalance(), allowing the attacker to swap tokenA for tokenB at an artificially favorable 
+// The manipulated price feeds into rebalance(), allowing the attacker to swap tokenA for tokenB at an artificially favorable
 // rate, draining protocol funds.
 
 // INVARIANT
 // Price used in rebalance operations must not be manipulable within a single transaction.
 
 // WHAT BREAKS
-// getPrice() reads the instantaneous sqrtPriceX96 from slot0() which can be moved to any value by swapping a large amount in 
+// getPrice() reads the instantaneous sqrtPriceX96 from slot0() which can be moved to any value by swapping a large amount in
 // the Uniswap pool. The rebalance() function trusts this price to compute exchange rates.
 
 // EXPLOIT PATH
@@ -100,6 +100,6 @@ contract BridgeRebalancer {
 // 5. Attacker swaps back in the pool, repays flash loan. Net profit: ~90 tokenB.
 
 // WHY MISSED
-// The code structure looks clean with a separate getPrice() function and proper threshold checks. The slot0() call returns many 
-// fields, masking the fact that sqrtPriceX96 is trivially manipulable. Auditors may focus on the rebalance logic rather than 
+// The code structure looks clean with a separate getPrice() function and proper threshold checks. The slot0() call returns many
+// fields, masking the fact that sqrtPriceX96 is trivially manipulable. Auditors may focus on the rebalance logic rather than
 // questioning the price source.
