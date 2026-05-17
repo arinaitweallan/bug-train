@@ -57,19 +57,19 @@ contract AutoCompoundVault is ERC20 {
 }
 
 // BUG
-// _compound() swaps yield tokens with minAmountOut = 0 and is called inside deposit() and withdraw(). This internal swap is 
+// _compound() swaps yield tokens with minAmountOut = 0 and is called inside deposit() and withdraw(). This internal swap is
 // sandwichable, manipulating the share price seen by depositors and withdrawers.
 
 // IMPACT
-// Depositors receive fewer shares and withdrawers receive fewer assets because the compound swap executes at a manipulated price, 
+// Depositors receive fewer shares and withdrawers receive fewer assets because the compound swap executes at a manipulated price,
 // reducing the vault's totalAssets().
 
 // INVARIANT
 // The share price seen by depositors and withdrawers must not be manipulable by sandwiching internal swaps.
 
 // WHAT BREAKS
-// _compound() is called inside deposit() and withdraw() with a 0-slippage swap. An attacker can front-run a user's deposit, 
-// manipulate the pool so _compound() converts yield at a terrible rate, reducing totalAssets() and inflating the share/asset 
+// _compound() is called inside deposit() and withdraw() with a 0-slippage swap. An attacker can front-run a user's deposit,
+// manipulate the pool so _compound() converts yield at a terrible rate, reducing totalAssets() and inflating the share/asset
 // ratio against the user.
 
 // EXPLOIT PATH
@@ -81,5 +81,5 @@ contract AutoCompoundVault is ERC20 {
 // 6. If totalSupply was 1000 shares: Alice gets 490 shares instead of 416 she should have gotten at fair price of 1200. Wait -- attacker extracts ~$90 value from the reduced compound.
 
 // WHY MISSED
-// The _compound() function appears to be a benign internal optimization. Auditors may focus on the deposit/withdraw share math 
+// The _compound() function appears to be a benign internal optimization. Auditors may focus on the deposit/withdraw share math
 // without tracing into the swap that modifies totalAssets() between the function entry and the share calculation
