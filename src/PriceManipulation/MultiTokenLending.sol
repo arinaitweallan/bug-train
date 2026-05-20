@@ -52,7 +52,7 @@ contract MultiTokenLending {
     }
 
     /// @notice Get collateral value
-    // The formula multiplies deposits * price / 1e8. But deposits are in token-native decimals. 
+    // The formula multiplies deposits * price / 1e8. But deposits are in token-native decimals.
     // q What if one token has 6 decimals and another has 18?
     function getCollateralValue(address user) public view returns (uint256 totalValue) {
         for (uint256 i = 0; i < markets.length; i++) {
@@ -77,20 +77,20 @@ contract MultiTokenLending {
 }
 
 // BUG
-// getCollateralValue() multiplies deposits[user][i] * price without normalizing for token decimals. USDC (6 decimals) deposits 
-// are treated the same as WETH (18 decimals). A deposit of 1000 USDC (1000e6) is valued 1e12 times less than 1000 WETH 
+// getCollateralValue() multiplies deposits[user][i] * price without normalizing for token decimals. USDC (6 decimals) deposits
+// are treated the same as WETH (18 decimals). A deposit of 1000 USDC (1000e6) is valued 1e12 times less than 1000 WETH
 // (1000e18) even if prices are similar.
 
 // IMPACT
-// Users depositing tokens with fewer decimals (USDC, USDT, WBTC) have their collateral severely undervalued, while tokens with 
-// 18 decimals are correctly valued. Alternatively, if the oracle returns 8-decimal prices for both, 6-decimal tokens get 1e12x 
+// Users depositing tokens with fewer decimals (USDC, USDT, WBTC) have their collateral severely undervalued, while tokens with
+// 18 decimals are correctly valued. Alternatively, if the oracle returns 8-decimal prices for both, 6-decimal tokens get 1e12x
 // undervalued.
 
 // INVARIANT
 // Collateral valuation must produce correct USD values regardless of the deposited token's decimal precision.
 
 // WHAT BREAKS
-// getCollateralValue() at line 48 does not normalize for token decimals. deposits[user][i] is in native token units (6 for USDC, 
+// getCollateralValue() at line 48 does not normalize for token decimals. deposits[user][i] is in native token units (6 for USDC,
 // 18 for WETH). Dividing by 1e8 (Chainlink decimals) is not sufficient -- the token decimal difference is unaccounted for.
 
 // EXPLOIT PATH
@@ -100,7 +100,7 @@ contract MultiTokenLending {
 // 4. Conversely, if an attacker deposits 1 WETH and borrows against it, the WETH is correctly valued -- but the pool's USDC collateral is phantom, leading to systematic undercollateralization.
 
 // WHY MISSED
-// The price feed integration looks correct (staleness check, positive price check, /1e8 for Chainlink decimals). The missing 
-// normalization is easy to overlook because the formula works perfectly for 18-decimal tokens. Testing with only WETH would 
+// The price feed integration looks correct (staleness check, positive price check, /1e8 for Chainlink decimals). The missing
+// normalization is easy to overlook because the formula works perfectly for 18-decimal tokens. Testing with only WETH would
 // never reveal the bug.
 
