@@ -63,3 +63,31 @@ contract StrategyCompounder {
         require(IERC20(token).transfer(vault, IERC20(token).balanceOf(address(this))), "Transfer failed");
     }
 }
+
+// BUG
+// amountOutMinimum is hardcoded to 0. This means the swap will accept ANY output amount, including near-zero. MEV bots can 
+// sandwich this transaction to extract maximum value.
+
+// IMPACT
+// The vault receives a fraction of the expected wantToken because the swap executes at a manipulated price. This directly 
+// reduces yield for all vault depositors.
+
+// INVARIANT
+// Every swap must enforce a minimum output amount that reflects the fair market exchange rate minus an acceptable slippage 
+// tolerance.
+
+// WHAT BREAKS
+// The harvest() function swaps all reward tokens with amountOutMinimum = 0. Any MEV bot can sandwich the transaction to extract 
+// the entire price impact as profit.
+
+// EXPLOIT PATH
+// 1. Strategy has 1,000 rewardTokens. Fair rate: 1 reward = 2 want tokens. Expected output: 2,000 want
+// 2. MEV bot front-runs: buys want token in the pool, raising its price. New rate: 1 reward = 0.5 want
+// 3. harvest() executes: swaps 1,000 reward, receives 500 want (amountOutMinimum: 0 accepts this)
+// 4. MEV bot back-runs: sells want token, restoring price. Bot profit: ~1,500 want tokens
+// 5. Vault receives 500 want instead of 2,000. Depositors lose 75% of the harvest yield.
+
+// WHY MISSED
+// The swap call uses the correct router interface and all other fields look reasonable. The amountOutMinimum: 0 is buried among 
+// 8 struct fields and appears to be a conservative 'let the router decide' approach. Auditors may assume slippage is handled 
+// elsewhere.
