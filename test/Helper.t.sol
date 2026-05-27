@@ -40,3 +40,23 @@ contract Helper is Base {
         console2.log("Result: ", _r);
     }
 }
+
+contract GlobalVsMemory is Base {
+    uint amount = 10;
+
+    function _useAmount() internal returns (uint result) {
+        uint amount = 20;
+        result = amount;
+        
+        if (result == 10) {
+            console2.log("Global variable used: 10");
+        } else {
+            // uses the memory variable, why?
+            console2.log("Memory variable used: 20");
+        }
+    }
+
+    function testVariableUsed() external {
+        uint _result = _useAmount();
+    }
+}
