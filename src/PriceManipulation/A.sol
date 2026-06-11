@@ -86,30 +86,30 @@ contract PythPerps {
     }
 }
 
-BUG
-updateAndGetPrice() accepts a user-supplied priceUpdate but does not enforce that p.publishTime is strictly greater than the 
-last stored publishTime. The 60-second freshness check (line 44) only validates against block.timestamp, not against the 
-previously accepted update. An attacker can submit an older (but still within 60s) price that is more favorable.
+// BUG
+// updateAndGetPrice() accepts a user-supplied priceUpdate but does not enforce that p.publishTime is strictly greater than the 
+// last stored publishTime. The 60-second freshness check (line 44) only validates against block.timestamp, not against the 
+// previously accepted update. An attacker can submit an older (but still within 60s) price that is more favorable.
 
-IMPACT
-The attacker opens a position with one price and closes with a strategically chosen earlier price update, manufacturing 
-artificial PnL.
+// IMPACT
+// The attacker opens a position with one price and closes with a strategically chosen earlier price update, manufacturing 
+// artificial PnL.
 
-INVARIANT
-Each accepted oracle price update must have a publishTime strictly greater than the previously accepted update.
+// INVARIANT
+// Each accepted oracle price update must have a publishTime strictly greater than the previously accepted update.
 
-WHAT BREAKS
-updateAndGetPrice() at line 44 checks block.timestamp - p.publishTime < 60 but never compares p.publishTime against the last 
-accepted update's timestamp. The user controls which price attestation to submit and can choose an older favorable price.
+// WHAT BREAKS
+// updateAndGetPrice() at line 44 checks block.timestamp - p.publishTime < 60 but never compares p.publishTime against the last 
+// accepted update's timestamp. The user controls which price attestation to submit and can choose an older favorable price.
 
-EXPLOIT PATH
-1. At T=0s, Pyth publishes price = $2,000. At T=30s, publishes price = $2,100. At T=50s, publishes price = $2,050
-2. Attacker opens a long position at T=30s using the T=0 update ($2,000). publishTime = 0, block.timestamp - 0 < 60. Accepted
-3. At T=55s, attacker closes using the T=30 update ($2,100). publishTime = 30, block.timestamp(55) - 30 < 60. Accepted
-4. PnL = size * ($2,100 - $2,000) / $2,000 = 5% profit on leveraged position
-5. The attacker cherry-picked the lowest open price and highest close price from available attestations within the 60s window.
+// EXPLOIT PATH
+// 1. At T=0s, Pyth publishes price = $2,000. At T=30s, publishes price = $2,100. At T=50s, publishes price = $2,050
+// 2. Attacker opens a long position at T=30s using the T=0 update ($2,000). publishTime = 0, block.timestamp - 0 < 60. Accepted
+// 3. At T=55s, attacker closes using the T=30 update ($2,100). publishTime = 30, block.timestamp(55) - 30 < 60. Accepted
+// 4. PnL = size * ($2,100 - $2,000) / $2,000 = 5% profit on leveraged position
+// 5. The attacker cherry-picked the lowest open price and highest close price from available attestations within the 60s window.
 
-WHY MISSED
-The code has a reasonable freshness check (< 60 seconds) and validates the price is positive. The Pyth integration follows 
-the standard pattern of updatePriceFeeds + getPrice. The missing monotonic timestamp check is subtle because Pyth's own 
-updatePriceFeeds does not enforce this -- it is the consuming protocol's responsibility.
+// WHY MISSED
+// The code has a reasonable freshness check (< 60 seconds) and validates the price is positive. The Pyth integration follows 
+// the standard pattern of updatePriceFeeds + getPrice. The missing monotonic timestamp check is subtle because Pyth's own 
+// updatePriceFeeds does not enforce this -- it is the consuming protocol's responsibility.
