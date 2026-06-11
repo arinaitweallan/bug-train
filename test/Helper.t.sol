@@ -42,12 +42,12 @@ contract Helper is Base {
 }
 
 contract GlobalVsMemory is Base {
-    uint amount = 10;
+    uint256 amount = 10;
 
-    function _useAmount() internal returns (uint result) {
-        uint amount = 20;
+    function _useAmount() internal returns (uint256 result) {
+        uint256 amount = 20;
         result = amount;
-        
+
         if (result == 10) {
             console2.log("Global variable used: 10");
         } else {
@@ -57,6 +57,6 @@ contract GlobalVsMemory is Base {
     }
 
     function testVariableUsed() external {
-        uint _result = _useAmount();
+        uint256 _result = _useAmount();
     }
 }
