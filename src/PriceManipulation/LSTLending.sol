@@ -64,19 +64,19 @@ contract LSTLending {
 }
 
 // BUG
-// getStEthPrice() uses the ETH/USD feed to price stETH, assuming 1 stETH = 1 ETH. During market stress, stETH can depeg from 
+// getStEthPrice() uses the ETH/USD feed to price stETH, assuming 1 stETH = 1 ETH. During market stress, stETH can depeg from
 // ETH (it traded at 0.93 ETH during the Terra crash). The protocol overvalues stETH collateral by ignoring the exchange rate.
 
 // IMPACT
-// During a depeg, users borrow WETH against overvalued stETH. If stETH depegs to 0.90 ETH, a user with 100 stETH can borrow as 
+// During a depeg, users borrow WETH against overvalued stETH. If stETH depegs to 0.90 ETH, a user with 100 stETH can borrow as
 // if they had 100 ETH worth, creating 10% bad debt on every position.
 
 // INVARIANT
-// Correlated asset pricing must account for potential depegs by using the specific asset's oracle feed, not the underlying's 
+// Correlated asset pricing must account for potential depegs by using the specific asset's oracle feed, not the underlying's
 // feed.
 
 // WHAT BREAKS
-// getStEthPrice() returns the ETH/USD price for stETH valuation, hardcoding a 1:1 peg assumption. During a depeg event, stETH 
+// getStEthPrice() returns the ETH/USD price for stETH valuation, hardcoding a 1:1 peg assumption. During a depeg event, stETH
 // collateral is overvalued, and the protocol accumulates bad debt.
 
 // EXPLOIT PATH
@@ -85,10 +85,10 @@ contract LSTLending {
 // 3. Deposits 100 stETH. getStEthPrice() returns $2,000 (ETH/USD, ignoring depeg)
 // 4. collateralValue = 100 * 2000 = $200,000. maxBorrow = $170,000 (85% LTV)
 // 5. Attacker borrows 170,000 worth of WETH. Collateral is only worth $180,000
-// 6. If stETH drops to 0.85 ETH, collateral = $170,000. Attacker defaults. Bad debt: $0-17,000 depending on timing. At scale 
+// 6. If stETH drops to 0.85 ETH, collateral = $170,000. Attacker defaults. Bad debt: $0-17,000 depending on timing. At scale
 //    with many users, systematic bad debt accumulates.
 
 // WHY MISSED
-// The ETH/USD feed is a legitimate Chainlink oracle with proper staleness checks. The function name getStEthPrice does not 
-// immediately alert to the 1:1 peg assumption. stETH is widely considered 'ETH-equivalent' in normal conditions, making this 
+// The ETH/USD feed is a legitimate Chainlink oracle with proper staleness checks. The function name getStEthPrice does not
+// immediately alert to the 1:1 peg assumption. stETH is widely considered 'ETH-equivalent' in normal conditions, making this
 // a protocol design assumption rather than an obvious bug.
