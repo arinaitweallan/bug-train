@@ -55,3 +55,29 @@ contract YieldRouter is ERC20 {
         router.swap(address(tokenA), address(tokenB), amountA, 0);
     }
 }
+
+// BUG
+// getExchangeRate() uses router.getAmountOut() which reflects current pool state (reserves/liquidity). This is a spot quote, 
+// not a manipulation-resistant oracle. It can be skewed by manipulating the underlying pool.
+
+// IMPACT
+// totalValue() uses the manipulable rate to value tokenA holdings. An inflated rate inflates totalValue(), letting existing 
+// shareholders withdraw more tokenB than they deposited.
+
+// INVARIANT
+// Asset valuation must use a manipulation-resistant price source, not a DEX quote function that reflects current pool state.
+
+// WHAT BREAKS
+// getExchangeRate() calls router.getAmountOut() which reads from pool reserves. The returned rate feeds into totalValue() which 
+// determines share prices for deposit() and withdraw(). Manipulating the pool changes the perceived total value.
+
+// EXPLOIT PATH
+// 1. Vault holds 1000 tokenA and 1000 tokenB. Fair rate: 1 A = 1 B. totalValue = 2000. TotalSupply = 2000 shares
+// 2. Attacker holds 100 shares. Fair withdrawal: 100 tokenB
+// 3. Attacker flash-loans tokenA, swaps into pool. getAmountOut(1e18) now returns 3e18 (3:1 rate)
+// 4. totalValue = 1000 * 3 + 1000 = 4000. Attacker's 100 shares worth: 100 * 4000 / 2000 = 200 tokenB
+// 5. Attacker withdraws 200 tokenB instead of 100. Profit: 100 tokenB.
+
+// WHY MISSED
+// Using a router's getAmountOut() looks like a standard way to get a price. The function name suggests it returns a fair 
+// exchange rate. Auditors may not trace the implementation to realize it reads spot reserves.
