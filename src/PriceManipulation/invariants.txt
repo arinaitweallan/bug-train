@@ -1,0 +1,24 @@
+1. Multi-oracle aggregation must not allow manipulation of the easiest-to-influence source to determine the final price.
+2. The share price seen by depositors and withdrawers must not be manipulable by sandwiching internal swaps.
+3. Pool rate functions must not be readable in an inconsistent state during pool operations that trigger ETH callbacks.
+4. Price used in rebalance operations must not be manipulable within a single transaction.
+5. Oracle price sources must not be alterable within the same transaction that consumes the price for financial decisions.
+6. The virtual price used for collateral valuation must not be readable in an inconsistent state during pool operations.
+7. Symmetric operations (mint/redeem) must use the same price source to prevent arbitrage from price discrepancies.
+8. The TWAP observation window must be long enough that the cost of sustaining price manipulation exceeds the potential profit
+   from exploiting the manipulated price.
+9. The cost of manipulating the price oracle must exceed the maximum extractable value from the manipulation.
+10. LP token valuation must not be inflatable by manipulating pool reserves within a single transaction.
+11. Correlated asset pricing must account for potential depegs by using the specific asset's oracle feed, not the underlying's
+   feed.
+12. Price used for collateral valuation and liquidation must not be manipulable within a single transaction.
+13. Collateral valuation must produce correct USD values regardless of the deposited token's decimal precision.
+14. Oracle prices used for PnL calculations must be current within the feed's heartbeat interval.
+15. Each accepted oracle price update must have a publishTime strictly greater than the previously accepted update.
+16. The price oracle used for collateral valuation must not be manipulable within a single atomic transaction.
+17. Reward distribution must be proportional to the duration of stake, not just the point-in-time balance at distribution.
+18. Every swap must enforce a minimum output amount that reflects the fair market exchange rate minus an acceptable slippage
+    tolerance.
+19. A TWAP must weight each price observation by its time duration, not count each observation equally.
+20. Asset valuation must use a manipulation-resistant price source, not a DEX quote function that reflects current pool state.
+21. No depositor should lose assets due to share price inflation caused by a prior deposit plus donation sequence.
