@@ -79,19 +79,19 @@ contract AggregatedOracle {
 }
 
 // BUG
-// getPrice() returns max(chainlinkPrice, uniTWAP). An attacker only needs to manipulate ONE source upward to inflate the final 
-// price. The Uniswap TWAP is cheaper to manipulate than Chainlink, so the attacker can push the TWAP above Chainlink to set 
+// getPrice() returns max(chainlinkPrice, uniTWAP). An attacker only needs to manipulate ONE source upward to inflate the final
+// price. The Uniswap TWAP is cheaper to manipulate than Chainlink, so the attacker can push the TWAP above Chainlink to set
 // the reported price.
 
 // IMPACT
-// The attacker borrows against collateral valued at the higher of two oracles. By manipulating the cheaper oracle (TWAP) upward, 
+// The attacker borrows against collateral valued at the higher of two oracles. By manipulating the cheaper oracle (TWAP) upward,
 // they can borrow more than the collateral is worth at the true market price.
 
 // INVARIANT
 // Multi-oracle aggregation must not allow manipulation of the easiest-to-influence source to determine the final price.
 
 // WHAT BREAKS
-// getPrice() returns the maximum of Chainlink and Uniswap TWAP. For collateral valuation, max() is the wrong aggregation 
+// getPrice() returns the maximum of Chainlink and Uniswap TWAP. For collateral valuation, max() is the wrong aggregation
 // because it gives the attacker two chances to inflate the price -- they only need to push the cheaper source upward.
 
 // EXPLOIT PATH
@@ -100,10 +100,10 @@ contract AggregatedOracle {
 // 3. getPrice() = max($2,000, $3,000) = $3,000
 // 4. Attacker deposits 100 ETH. value = 100 * $3,000 = $300K. maxBorrow = $240K
 // 5. Fair borrow limit: 100 * $2,000 * 80% = $160K. Excess borrowed: $80K
-// 6. After TWAP normalizes, attacker defaults. Bad debt: $80K. Profit: $80K - $100K manip cost = marginal at this scale, 
+// 6. After TWAP normalizes, attacker defaults. Bad debt: $80K. Profit: $80K - $100K manip cost = marginal at this scale,
 // profitable at larger scale.
 
 // WHY MISSED
-// Using two oracle sources and taking the maximum appears conservative and redundant. The presence of both Chainlink (reliable) 
-// and TWAP (decentralized) suggests defense-in-depth. The issue is that max() is the wrong aggregation for defensive pricing 
+// Using two oracle sources and taking the maximum appears conservative and redundant. The presence of both Chainlink (reliable)
+// and TWAP (decentralized) suggests defense-in-depth. The issue is that max() is the wrong aggregation for defensive pricing
 // -- it should be min() for collateral and max() for debt.

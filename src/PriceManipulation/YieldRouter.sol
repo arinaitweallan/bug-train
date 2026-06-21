@@ -57,18 +57,18 @@ contract YieldRouter is ERC20 {
 }
 
 // BUG
-// getExchangeRate() uses router.getAmountOut() which reflects current pool state (reserves/liquidity). This is a spot quote, 
+// getExchangeRate() uses router.getAmountOut() which reflects current pool state (reserves/liquidity). This is a spot quote,
 // not a manipulation-resistant oracle. It can be skewed by manipulating the underlying pool.
 
 // IMPACT
-// totalValue() uses the manipulable rate to value tokenA holdings. An inflated rate inflates totalValue(), letting existing 
+// totalValue() uses the manipulable rate to value tokenA holdings. An inflated rate inflates totalValue(), letting existing
 // shareholders withdraw more tokenB than they deposited.
 
 // INVARIANT
 // Asset valuation must use a manipulation-resistant price source, not a DEX quote function that reflects current pool state.
 
 // WHAT BREAKS
-// getExchangeRate() calls router.getAmountOut() which reads from pool reserves. The returned rate feeds into totalValue() which 
+// getExchangeRate() calls router.getAmountOut() which reads from pool reserves. The returned rate feeds into totalValue() which
 // determines share prices for deposit() and withdraw(). Manipulating the pool changes the perceived total value.
 
 // EXPLOIT PATH
@@ -79,5 +79,5 @@ contract YieldRouter is ERC20 {
 // 5. Attacker withdraws 200 tokenB instead of 100. Profit: 100 tokenB.
 
 // WHY MISSED
-// Using a router's getAmountOut() looks like a standard way to get a price. The function name suggests it returns a fair 
+// Using a router's getAmountOut() looks like a standard way to get a price. The function name suggests it returns a fair
 // exchange rate. Auditors may not trace the implementation to realize it reads spot reserves.
