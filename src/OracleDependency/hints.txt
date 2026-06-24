@@ -1,1 +1,4 @@
 1. When is the price read versus when is it used? Is there a time gap between these two events?
+2. The oracle validates that the price is positive and fresh. But what if the fresh price is wildly 
+different from the previous price due to oracle corruption?
+3. What decimals does a typical Chainlink ETH/USD feed return? Is it always 18?
