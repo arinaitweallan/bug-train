@@ -11,6 +11,7 @@ out/
 docs/
 script/
 broadcast/
+bounty/
 
 # Dotenv file
 .env

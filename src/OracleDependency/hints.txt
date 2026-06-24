@@ -1,0 +1,1 @@
+1. When is the price read versus when is it used? Is there a time gap between these two events?
