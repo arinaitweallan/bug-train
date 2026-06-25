@@ -65,23 +65,23 @@ contract TreasuryVault {
 }
 
 // BUG
-// The price normalization divides by 1e18, which is the token-decimal scale but ignores the feed's 1e8 decimal scale. For an 
-// 18-decimal token and an 8-decimal Chainlink feed, the correct divisor is 1e8 * 1e18 = 1e26. Dividing by 1e18 alone leaves 
-// an extra 1e8 factor unnormalized, causing the result to undervalue the position by a factor of 1000 relative to the expected 
+// The price normalization divides by 1e18, which is the token-decimal scale but ignores the feed's 1e8 decimal scale. For an
+// 18-decimal token and an 8-decimal Chainlink feed, the correct divisor is 1e8 * 1e18 = 1e26. Dividing by 1e18 alone leaves
+// an extra 1e8 factor unnormalized, causing the result to undervalue the position by a factor of 1000 relative to the expected
 // 8-decimal USD representation.
 
 // IMPACT
-// getTokenValue() and getTotalValue() report the vault's holdings as 1000x smaller than reality for 8-decimal feeds paired with 
-// 18-decimal tokens. Any downstream protocol using these values for collateral ratios, rebalancing, or risk management operates 
+// getTokenValue() and getTotalValue() report the vault's holdings as 1000x smaller than reality for 8-decimal feeds paired with
+// 18-decimal tokens. Any downstream protocol using these values for collateral ratios, rebalancing, or risk management operates
 // on a 1000x incorrect valuation.
 
 // INVARIANT
-// Price normalization must divide by (token decimals * feed decimals), not token decimals alone. The scale of the divisor must 
+// Price normalization must divide by (token decimals * feed decimals), not token decimals alone. The scale of the divisor must
 // equal the combined scale of the multiplied operands.
 
 // WHAT BREAKS
-// getTokenValue() divides by 1e18 only. For an 18-decimal token and an 8-decimal Chainlink feed, the correct normalization 
-// is /1e26 (1e18 token scale * 1e8 feed scale). Dropping the 1e8 factor produces a result with 1000x less magnitude than the 
+// getTokenValue() divides by 1e18 only. For an 18-decimal token and an 8-decimal Chainlink feed, the correct normalization
+// is /1e26 (1e18 token scale * 1e8 feed scale). Dropping the 1e8 factor produces a result with 1000x less magnitude than the
 // expected 8-decimal USD value.
 
 // EXPLOIT PATH
@@ -93,6 +93,6 @@ contract TreasuryVault {
 // 6. Any downstream rebalancer or risk engine consuming this value operates on collateral that appears 1000x smaller than reality, potentially skipping rebalances or triggering emergency withdrawals that drain the vault.
 
 // WHY MISSED
-// The code queries feed.decimals() via the interface definition but never calls it. The 1e18 divisor looks like standard 
+// The code queries feed.decimals() via the interface definition but never calls it. The 1e18 divisor looks like standard
 // Solidity precision handling, and auditors familiar with 18-decimal ERC20 tokens may conflate token decimals with feed decimals.
 
