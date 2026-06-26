@@ -80,8 +80,7 @@ contract L2LendingPool {
 // outage, or allow borrowing against outdated collateral values via borrow() and liquidate()
 
 // INVARIANT
-// On L2 deployments, oracle prices must only be consumed after the sequencer has been confirmed up for a sufficient grace
-// period following any outage.
+// c
 
 // WHAT BREAKS
 // The contract is deployed on Arbitrum but does not query the Chainlink L2 sequencer uptime feed. After a sequencer outage

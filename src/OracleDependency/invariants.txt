@@ -1,0 +1,32 @@
+
+1. LP token pricing must use the actual circulating supply, not the total supply which may include pre-minted or protocol-owned
+   tokens.
+2. The oracle price must always be a positive value before being used in any collateral or borrowing calculation.
+3. In composite oracle paths, intermediate price decimal counts must be tracked and normalized at each multiplication boundary
+   to prevent compounding precision errors.
+4. Oracle price reads must not occur during a callback context where the underlying price source's state is temporarily
+   inconsistent.
+5. Fallback/cached prices must have their own staleness validation. A price that is too old to use from the primary feed is also
+   too old to use from a cache.
+6. A TWAP oracle source pool must have sufficient liquidity that the cost to sustain a manipulated price for the entire window
+   exceeds the maximum extractable value.
+7. Feed metadata (decimals, heartbeat) must be queried dynamically when the feed uses an upgradeable proxy, not cached at
+   deployment time.
+8. Feed metadata (decimals, heartbeat) must be queried dynamically when the feed uses an upgradeable proxy, not cached at
+   deployment time.
+9. The oracle price used in any financial calculation must have been updated within a protocol-defined heartbeat window
+   (e.g., 3600 seconds for ETH/USD).
+10. Oracle prices must be sanity-checked against a reference band or previous value to detect corrupted updates before they
+    affect financial operations.
+11. Liquidations revert when the oracle is unavailable. Unhealthy positions accumulate bad debt because they cannot be liquidated
+    during the outage. This can lead to protocol insolvency if the outage coincides with a market crash.
+12. Share price must not be determined by a single spot price read from a manipulable oracle within a single transaction; NAV
+    computations must use TWAP, staleness checks, or a commit-reveal pattern.
+13. The heartbeat parameter must be initialized to a non-zero value in the constructor and bounded within a reasonable range
+    matching the Chainlink feed's actual update frequency.
+14. In multi-step operations with time delays, the oracle price used for P&L reference (entry price) must be re-fetched at the
+    consumption point and settlement must be mandatory or expire after a short window, not optional on the trader's initiative.
+15. Price normalization must divide by (token decimals * feed decimals), not token decimals alone. The scale of the divisor must
+    equal the combined scale of the multiplied operands.
+16. A TWAP oracle must use an observation window long enough that the cost of sustaining a manipulated price for the entire
+    window exceeds the attacker's potential profit.
