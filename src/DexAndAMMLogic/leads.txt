@@ -1,1 +1,2 @@
 1. The swap has minAmountOut but no deadline. How long can this transaction wait before executing?
+2. Where does the price data come from? Can getReserves() be influenced within the same transaction?
