@@ -40,7 +40,7 @@ contract CurveStrategy {
     // q After remove_liquidity_one_coin, what does want.balanceOf(address(this)) include?
     // Is it only the tokens from this removal?
     function withdraw(uint256 lpAmount) external onlyVault {
-        lpToken.safeApprove(address(pool), lpAmount);
+        // lpToken.safeApprove(address(pool), lpAmount);
         pool.remove_liquidity_one_coin(lpAmount, 0, 0); // return token amount removed, is it want? [yes]
 
         uint256 wantBal = want.balanceOf(address(this));
@@ -52,7 +52,7 @@ contract CurveStrategy {
     /// @notice Deposit tokens into the contract
     function deposit(uint256 amount) external onlyVault {
         want.safeTransferFrom(vault, address(this), amount);
-        want.safeApprove(address(pool), amount);
+        // want.safeApprove(address(pool), amount);
 
         uint256[2] memory amounts;
         amounts[0] = amount;

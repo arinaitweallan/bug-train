@@ -1,2 +1,9 @@
 1. The swap has minAmountOut but no deadline. How long can this transaction wait before executing?
 2. Where does the price data come from? Can getReserves() be influenced within the same transaction?
+3. Which direction does the rounding go on deposit? On withdrawal? Who benefits from rounding in each case?
+4. deposit() reads cachedPriceA but does not call _refreshPrice(). When was cachedPriceA last updated?
+5. addLiquiditySingleSided values the deposit using totalValue = reserveA + reserveB. Does it account for the fact that a 
+   single-sided deposit effectively swaps half the amount?
+
+    Deposit 1000 tokenA single-sided, get LP shares based on pre-deposit ratio. Immediately remove liquidity: receive proportional 
+    tokenA AND tokenB. Net: swapped tokenA for tokenB without paying any swap fee.
